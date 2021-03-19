@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "571317457733",
+    "firebase_url": "https://bvhmobileapp-e9262.firebaseio.com",
+    "project_id": "bvhmobileapp-e9262",
+    "storage_bucket": "bvhmobileapp-e9262.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:571317457733:android:63dfe45c0350cc2a34e42c",
+        "android_client_info": {
+          "package_name": "com.ci.bvhptapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "571317457733-9hicm76sqkn841mcg1caffqv6i47j5m4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnfXkpi_jIIephlsTijShptbm88MIwpjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "571317457733-9hicm76sqkn841mcg1caffqv6i47j5m4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:571317457733:android:2a0bd7bef60688e934e42c",
+        "android_client_info": {
+          "package_name": "com.ci.groupchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "571317457733-9hicm76sqkn841mcg1caffqv6i47j5m4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnfXkpi_jIIephlsTijShptbm88MIwpjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "571317457733-9hicm76sqkn841mcg1caffqv6i47j5m4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

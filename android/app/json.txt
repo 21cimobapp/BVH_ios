@@ -1,0 +1,112 @@
+{
+    "@name": "form",
+    "id": "form1",
+    "children": [
+        {
+            "@name": "formGroup",
+            "id": "formGroup1",
+            "name": "Form section 1",
+            "children": [
+                {
+                    "@name": "textField",
+                    "id": "firstName",
+                    "label": "Enter your first name",
+                    "value": "John",
+                    "validations": [
+                        {
+                            "@name": "validation",
+                            "message": "Name is too long",
+                            "isValid": {
+                                "expression": "length(@firstName) < 15"
+                            }
+                        },
+                        {
+                            "@name": "requiredValidation",
+                            "message": "First name is required"
+                        }
+                    ]
+                },
+                {
+                    "@name": "textField",
+                    "id": "lastName",
+                    "label": "Enter your last name",
+                    "validations": [
+                        {
+                            "@name": "requiredValidation",
+                            "message": "Last name is required"
+                        }
+                    ]
+                },
+                {
+                    "@name": "textField",
+                    "id": "Address",
+                    "label": "Enter your Address",
+                    "style":"#TextStyle(color: Color(0xffffffff), fontWeight: FontWeight.bold )",
+                    "validations": [
+                        {
+                            "@name": "requiredValidation",
+                            "message": "Address is required",
+                            "keyboardType": "TextInputType.number"
+                        }
+                    ]
+                },
+                {
+                    "@name": "textField",
+                    "id": "Age",
+                    "label": "Enter your Age",
+                    "validations": [
+                        {
+                            "@name": "requiredValidation",
+                            "message": "Age is required",
+                            "keyboardType": "TextInputType.number"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "@name": "formGroup",
+            "id": "formgroup5",
+            "name": "Form section 5",
+            "children": [
+                {
+                    "@name": "date",
+                    "id": "Form Date",
+                    "firsDate": "2010-02-27",
+                    "lastDate": "2030-02-27",
+                    "format": "yyyy-MM-dd",
+                    "initialDate": "2019-10-20"
+                }
+            ]
+        },
+        {
+            "@name": "formGroup",
+            "id": "formgroup5",
+            "name": "Form section 3",
+            "children": [
+                {
+                    "@name": "text",
+                    "id": "hideWelcomeCheckBox",
+                    "label": "Select Gender"
+                },
+                {
+                    "@name": "radioButtonGroup",
+                    "id": "radioGroup1",
+                    "value": "-1",
+                    "choices": [
+                        {
+                            "@name": "radioButton",
+                            "label": "Male",
+                            "value": "1"
+                        },
+                        {
+                            "@name": "radioButton",
+                            "label": "Female",
+                            "value": "2"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

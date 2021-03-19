@@ -1,0 +1,42 @@
+*** Jio- Developers ***
+
+ /////Introduction
+ jio-developers - use to develop the apps and publish them on JioStore or STB(Set-top-Box) which can be seen on TV.
+ 
+
+1. Jio Phone uses KaiOS (2018).
+2. Mozilla and KaiOS tech announced partnership to update KaiOS with a modern version of
+   Gecko browser engine and closer align testing infrastructure. (March 2020).
+3. This gave users the ability to use old Firefox OS apps on KaiOS devices, as well as 
+   flashing their devices with community-created ROMs, such as GerdaOS.
+4. Written in - HTML, CSS, JavaScript and are run by Gecko runtime
+5. OS family- Firefox OS / Open Web (based on Linux kernel)
+6. apps can be developed using - Android studio, visual studio code,Sublime Text etc.
+
+
+
+
+///// other Links
+
+1.https://developer.kaiostech.com/getting-started/main-concepts
+2.https://gadgets.ndtv.com/telecom/features/jio-fiber-set-top-box-free-installation-order-everything-you-need-to-know-2149547#:~:text=The%20free%20Jio%20Fiber%20set,and%20a%20quick%2Dstart%20guide.
+
+
+//////
+
+1. Jio-STB (set-top-box)
+
+2. About STB -
+  -The free Jio Fiber set-top box is an Android-based streaming media player that subscribers can connect to their TVs using an HDMI connection.
+   The set-top box comes with a Bluetooth-based remote control, HDMI cable, Ethernet cable, and a quick-start guide.
+
+  -The set-top box can stream content from a small number of apps and services right now. 
+   It's not a conventional DTH set-top box and can only be used to stream content from the Internet. 
+   You'll need an active Internet connection to stream content, just like any other online streaming media player.
+
+  -the Jio Fiber set-top box comes with Hotstar, YouTube, Voot, JioSaavn, JioTV Plus, SonyLIV, and JioCinema.
+
+3. Jio-app-Store 
+   Jio Apps Store is similar to most of the popular app stores like Google Play. 
+   Jio Apps Store is a full-fledged software for Android users. 
+   It allows us to download a wide range of free as well as paid apps, games, music, and movies.
