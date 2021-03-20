@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     //secureScreen();
   }
-
+//abcd
   secureScreen() async {
     await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
   }
