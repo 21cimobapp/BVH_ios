@@ -716,13 +716,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.0"
-  shared:
-    dependency: "direct main"
-    description:
-      path: "../_shared"
-      relative: true
-    source: path
-    version: "1.0.0+1"
   shared_preferences:
     dependency: "direct main"
     description:
