@@ -1,4 +1,4 @@
-import 'dart:wasm';
+// import 'dart:wasm';
 
 import 'package:civideoconnectapp/data_models/AppointmentDetails.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -195,6 +195,19 @@ class DatabaseMethods {
         .snapshots();
   }
 
+  Future<String> getRazorPayKey()  async {
+    String razorkey;
+    await Firestore.instance
+        .collection("Config")
+//        .document("RazorPay")
+//        .collection("RazorPayKey")
+        .getDocuments()
+        .then((QuerySnapshot snapshot) => snapshot.documents
+        .forEach((f) => razorkey = f.data['RazorPayKey']));
+//        .snapshots();
+  return razorkey;
+  }
+
   Future<List<PatientAppointmentDoctorList>> getPatientAppointmentDoctorList(
       String patientCode) async {
     final List<PatientAppointmentDoctorList> loadedList1 = [];
@@ -253,7 +266,7 @@ class DatabaseMethods {
         .collection("eRecords")
         .document(patientCode)
         .collection('Docuements')
-        .where('documentCode', isEqualTo: "ePr$documentCode")
+        .where('documentCode', isEqualTo: "$documentCode")
         .getDocuments()
         .then((QuerySnapshot snapshot) => snapshot.documents
             .forEach((f) => documentURL = f.data['documentURL']));

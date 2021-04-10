@@ -311,7 +311,7 @@ var dir1 =  await ExtStorage.getExternalStoragePublicDirectory(ExtStorage.DIRECT
 
       print(dir1);
       print(dir.path);
-      file = File("${dir1}/${globals.personName}_${extractdata[0]['FileName']}");
+      file = File("${dir1}/${globals.personName}_${extractdata[0]['FileName']}.pdf");
 //      file = File("${dir1}/1.pdf");
 //       await file.writeAsBytes(bytes);
       File f1=await file.writeAsBytes(bytes);

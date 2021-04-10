@@ -338,10 +338,12 @@ class _ConformappointmentState extends State<Conformappointment> {
                                         widget.doctorDet.qualification,
                                         _getUserData("Age"),
                                         _getUserData("Gender"),
+                                        widget.appDetail.PatientMobile,
+                                        widget.appDetail.PatientEmail,
                                         widget.appDetail.SlotDuration,
                                         "",
                                         0,
-                                        "","");
+                                        "","","","");
 
                                 createContact(apptSaveDet);
                               },

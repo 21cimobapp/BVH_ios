@@ -22,11 +22,15 @@ class Appointmentsavedetails {
   String DoctorQualification;
   String PatientAge;
   String PatientGender;
+  String PatientMobile;
+  String PatientEmail;
   int SlotDuration;
   String paymentID;
   int paymentAmount;
   String signature;
   String DeptCode;
+  String ServiceCode;
+  String BillServiceCode;
 
   Appointmentsavedetails(
     this.Token,
@@ -50,11 +54,15 @@ class Appointmentsavedetails {
     this.DoctorQualification,
     this.PatientAge,
     this.PatientGender,
+    this.PatientMobile,
+    this.PatientEmail,
     this.SlotDuration,
     this.paymentID,
     this.paymentAmount,
     this.signature,
-      this.DeptCode
+    this.DeptCode,
+      this.ServiceCode,
+      this.BillServiceCode
   );
 
   Appointmentsavedetails.fromJson(Map<String, dynamic> json) {

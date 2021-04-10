@@ -1,3 +1,4 @@
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +10,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum SummaryTheme { dark, light }
 
 class AppointmentSummary extends StatelessWidget {
-  final DocumentSnapshot appt;
+  //final DocumentSnapshot appt;//underapi
+  final ViewAppointmentDetails appt;
   final SummaryTheme theme;
   final bool isOpen;
 
@@ -82,15 +84,17 @@ class AppointmentSummary extends StatelessWidget {
                       children: [
                         Container(
                           //color: Colors.green,
-                          //width: MediaQuery.of(context).size.width - 150,
+//                          width: MediaQuery.of(context).size.width - 150,
                           child: Text(
-                            "${appt.data["doctorName"].toUpperCase()}",
+//                            "${appt.data["doctorName"].toUpperCase()}", //underapi
+                            "${appt.DoctorName.toUpperCase()}",
                             style: bodyTextStyle.copyWith(fontSize: 20),
-                            overflow: TextOverflow.ellipsis,
+                            overflow: TextOverflow.visible,
                           ),
                         ),
                         Text(
-                          appt.data["departmentName"].toUpperCase(),
+//                          appt.data["departmentName"].toUpperCase(), //underapi
+                          appt.DeptName.toUpperCase(),
                           style: bodyTextStyle.copyWith(fontSize: 10),
                         ),
                       ],
@@ -152,14 +156,16 @@ class AppointmentSummary extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Image.asset(
-              appt.data["appointmentType"] == "VIDEOCONSULT"
+//              appt.data["appointmentType"] == "VIDEOCONSULT"//underapi
+              appt.ApptType == "VIDEOCONSULT"
                   ? 'assets/images/Video.png'
                   : 'assets/images/InPerson.png',
               width: 10,
             ),
           ),
           Text(
-              appt.data["appointmentType"] == "VIDEOCONSULT"
+//              appt.data["appointmentType"] == "VIDEOCONSULT"//underapi
+                  appt.ApptType == "VIDEOCONSULT"
                   ? 'Video Consultation'.toUpperCase()
                   : 'Personal Visit'.toUpperCase(),
               style: TextStyle(
@@ -178,14 +184,16 @@ class AppointmentSummary extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Image.asset(
-              appt.data["appointmentType"] == "VIDEOCONSULT"
+              //              appt.data["appointmentType"] == "VIDEOCONSULT"//underapi
+              appt.ApptType == "VIDEOCONSULT"
                   ? 'assets/images/Video.png'
                   : 'assets/images/InPerson.png',
               width: 10,
             ),
           ),
           Text(
-              appt.data["appointmentType"] == "VIDEOCONSULT"
+            //              appt.data["appointmentType"] == "VIDEOCONSULT"//underapi
+              appt.ApptType == "VIDEOCONSULT"
                   ? 'Video Consultation'.toUpperCase()
                   : 'Personal Visit'.toUpperCase(),
               style: TextStyle(
@@ -212,9 +220,10 @@ class AppointmentSummary extends StatelessWidget {
     DateTime currentDate =
         DateFormat('yyyy-MM-dd').parse(DateTime.now().toString());
 
-    DateTime doctorSlotToTime = DateFormat('yyyy-MM-dd')
-        .parse(appt.data["doctorSlotToTime"].toDate().toString());
-    String appointmentStatus = appt.data["appointmentStatus"];
+//    DateTime doctorSlotToTime = DateFormat('yyyy-MM-dd').parse(appt.data["doctorSlotToTime"].toDate().toString());//underapi
+    DateTime doctorSlotToTime = appt.ApptRqstDate;
+//    String appointmentStatus = appt.data["appointmentStatus"];//underapi
+    String appointmentStatus = appt.AppointmentStatus;
     int apptStatus = 0;
 
     if (doctorSlotToTime.difference(currentDate).inDays >= 0) {
@@ -229,9 +238,11 @@ class AppointmentSummary extends StatelessWidget {
     if (apptStatus == 1) {
       return viewPendingAppointment();
     } else {
-      if (appt.data["appointmentStatus"] == "DONE") {
+//      if (appt.data["appointmentStatus"] == "DONE") {//underapi
+        if (appt.AppointmentStatus.toUpperCase() == "DONE") {
         return viewCompletedAppointment();
-      } else if (appt.data["appointmentStatus"] == "CANCELLED") {
+//      } else if (appt.data["appointmentStatus"] == "CANCELLED") {//underapi
+        } else if (appt.AppointmentStatus.toUpperCase() == "CANCELLED") {//underapi
         return viewCancelledAppointment();
       } else {
         return viewNoShowAppointment();
@@ -259,7 +270,7 @@ class AppointmentSummary extends StatelessWidget {
       color: Color(0xFFe46565),
     );
     return Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-      Text("Appointment DONE", style: statusStyle),
+      Text("Appointment Complete", style: statusStyle),
     ]);
   }
 
@@ -301,7 +312,8 @@ class AppointmentSummary extends StatelessWidget {
         Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Appointment Number : ${appt.data["appointmentNumber"]}",
+//              Text("Appointment Number : ${appt.data["appointmentNumber"]}",//underapi
+                  Text("Appointment Number : ${appt.ApptNumber}",
                   style :headerStyle//TextStyle(color:Colors.indigo,fontWeight: FontWeight.bold,),
               ),
               //Text(globals.personName.toUpperCase(), style: headerStyle),
@@ -314,13 +326,15 @@ class AppointmentSummary extends StatelessWidget {
           children: [
             Text(
                 DateFormat('EEE, MMM d yyyy')
-                    .format(appt.data["apptDate"].toDate())
+//                    .format(appt.data["apptDate"].toDate())//underapi
+                    .format(appt.ApptRqstDate)
                     .toUpperCase(),
                 style: headerStyle
     ),
             Text(
-                DateFormat.jm()
-                    .format(appt.data["doctorSlotFromTime"].toDate())
+//                DateFormat.jm()
+//                    .format(appt.data["doctorSlotFromTime"].toDate())
+                appt.FromTime
                     .toUpperCase(),
                 style: headerStyle)
           ],

@@ -1,6 +1,9 @@
 class PatientAppointmentdetails {
   String PatientCode;
   String PatientName;
+  String GenderCode;
+  String PatientMobile;
+  String PatientEmail;
   String DoctorCode;
   String DoctorName;
   String DoctorDesignation;
@@ -15,11 +18,17 @@ class PatientAppointmentdetails {
   String AppointmentType;
   int SlotDuration;
   int ConsultationFee;
+  String VisitType;
+  String ServiceCode;
+  String BillServiceCode;
   String OrganizationCode;
 
   PatientAppointmentdetails(
       this.PatientCode,
       this.PatientName,
+      this.GenderCode,
+      this.PatientMobile,
+      this.PatientEmail,
       this.DoctorCode,
       this.DoctorName,
       this.DoctorDesignation,
@@ -34,8 +43,62 @@ class PatientAppointmentdetails {
       this.AppointmentType,
       this.SlotDuration,
       this.ConsultationFee,
+      this.VisitType,
+      this.ServiceCode,
       this.OrganizationCode);
 }
+
+
+
+class PatienRegistrationDetails {
+  String FirstName;
+  String LastName;
+  String FullName;
+  String patientCode;
+  String genderACode;
+  String mobileNumber;
+  String emailID;
+
+
+  PatienRegistrationDetails(
+      this.FirstName,
+      this.LastName,
+      this.FullName,
+      this.patientCode,
+      this.genderACode,
+      this.mobileNumber,
+      this.emailID,
+      );
+  PatienRegistrationDetails.fromJsonnew(Map<String, dynamic> json) {
+    FirstName = json["FirstName"];
+    LastName = json["LastName"];
+    FullName = json["FullName"];
+    patientCode=json["PersonCode"];
+    genderACode=json["GenderCode"];
+    mobileNumber = json["MobileNumber"];
+    emailID=json["EmailID"];
+  }
+
+  }
+
+class DoctorServiceDetails {
+  String ServiceCode;
+  String ServiceName;
+
+
+
+  DoctorServiceDetails(
+      this.ServiceCode,
+      this.ServiceName,
+      );
+  DoctorServiceDetails.fromJsonnew(Map<String, dynamic> json) {
+    ServiceCode = json["ServiceCode"];
+    ServiceName = json["ServiceName"];
+
+  }
+
+}
+
 
 class PatientAppointment {
   String SlotAvailable;
@@ -48,6 +111,7 @@ class PatientAppointment {
   String SlotNumber;
   int SlotNumberID;
   int ConsultationFee;
+
 
   PatientAppointment(
       this.SlotAvailable,

@@ -1,9 +1,11 @@
 import 'package:civideoconnectapp/data_models/AppointmentDetails.dart';
+import 'package:civideoconnectapp/src/pages/appointment_new/Reg_Patient_List.dart';
 import 'package:civideoconnectapp/src/pages/call.dart';
 import 'package:civideoconnectapp/src/pages/index/index_new.dart';
 import 'package:civideoconnectapp/src/pages/index/index_new_doctor.dart';
 import 'package:civideoconnectapp/src/pages/welcome/welcome_screen.dart';
 import 'package:civideoconnectapp/src/utils/settings.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,6 +24,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:agora_rtm/agora_rtm.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:civideoconnectapp/utils/Database.dart';
+
+import 'data_models/PatientAppointmentdetails.dart';
 
 class StartScreen extends StatefulWidget {
   final bool firstTimeLogin;
@@ -119,6 +123,18 @@ class _StartScreenState extends State<StartScreen> {
 //        payload: 'item x');
   }
 
+
+  getFromLocalDatabase() async {
+    final prefs = await SharedPreferences.getInstance();
+
+      globals.loginUserType = "PATIENT";
+
+      final key = 'personCode';
+      final value = prefs.getString(key) ?? "";
+      globals.personCode = value;
+
+  }
+
   updateLocalDatabase() async {
     final prefs = await SharedPreferences.getInstance();
     if (_loginUserType() != "") {
@@ -170,16 +186,109 @@ class _StartScreenState extends State<StartScreen> {
       MaterialPageRoute(builder: (context) => WelcomeScreen()),
     );
   }
+  geRazorPayKey() async {
+    await Firestore.instance//.document(widget.appointmentNumber)
+    //.collection('Appointments')
+    //.document(appointmentNumber)
+        .collection("Config")
+        .where("code", isEqualTo: "RazorPay")
+        .getDocuments()
+        .then((QuerySnapshot snapshot) //{
+    => snapshot.documents.forEach(
+            (f) => globals.RazorPayKey = f.data["RazorPayKey"]
+      // print(f.data["AppointmentNumber"])
+    ),
 
+    );
+
+      var defaultRazorPayKey ="";
+
+      if (globals.RazorPayKey == null) {
+        globals.RazorPayKey=defaultRazorPayKey;
+      } else if (globals.RazorPayKey == ""){
+        globals.RazorPayKey=defaultRazorPayKey;
+      }
+
+//    options.key=listOfRazorKey[0];
+//    return listOfRazorKey;
+  }
   loadIndexPage(res) async {
     loadHolidays();
-    await updateLocalDatabase();
 
-    if (_loginUserType() == "DOCTOR") {
-      await getDcotorDetails(res.phoneNumber);
-    } else {
-      await getPatientDetails(res.phoneNumber);
+    await geRazorPayKey();
+    await getFromLocalDatabase();
+
+    if(_personCode()  != "") {
+      await getPatientDetailsPatientID(globals.personCode);
+      globals.loginUserType="PATIENT";
+      globals.user = data;
+      globals.personCode = data[0]["PersonCode"];
+      globals.personName =
+      "${data[0]["Salutation"]} ${data[0]["FirstName"]}";
+      globals.personGender = data[0]["GenderCode"];
+      globals.tokenKey = data[0]["TokenKey"];
+      globals.mobileNumber = data[0]["MobileNumber"];
+      globals.personEmailID = data[0]["EmailID"];
+      Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) =>
+           IndexNew(),
+
+      ),
+      (Route<dynamic> route) => false,
+    );
     }
+    else {
+      await getPatientDetails(res.phoneNumber);
+      data.isNotEmpty ? data.length == 1 ? singleuser(res, data) : multipleuser(
+          res, data) : Container(
+          child: Text("Loading"), height: 100, width: 150);
+    }
+    //Abhi
+//    if (widget.firstTimeLogin == true) {
+//      await updateUserToDatabase(res);
+//    }
+////    //await _createClient();
+////    //await _loginToChatService();
+////
+////    await DatabaseMethods().getUserInfoByID(globals.personCode).then(
+//        (snapshot) => snapshot.documents
+//            .forEach((f) => globals.isOnline = f.data['onlineStatus']));
+//    if (globals.isOnline == null) globals.isOnline = false;
+//
+//    // Navigator.pushReplacement(
+//    //   context,
+//    //   MaterialPageRoute(builder: (context) => IndexPage()),
+//    // );
+//
+//    Navigator.of(context).pushAndRemoveUntil(
+//      MaterialPageRoute(
+//        builder: (context) =>
+//            _loginUserType() == "DOCTOR" ? IndexNewDoctor() : IndexNew(),
+//        // Added by vrushali for multiple patients list.
+////          _loginUserType() == "PATIENT" ?
+////          data.isNotEmpty? data.length==1?
+////          IndexNew()   :RegisterPatientList():Container(child:Text("Loading"),height:100,width:150)
+////              : IndexNewDoctor(),
+//        // End Added by vrushali for multiple patients list.
+//      ),
+//      (Route<dynamic> route) => false,
+//    );
+//
+  }
+
+  singleuser(FirebaseUser res, List data) async{
+    globals.loginUserType="PATIENT";
+    globals.user = data;
+    globals.personCode = data[0]["PersonCode"];
+    globals.personName =
+    "${data[0]["Salutation"]} ${data[0]["FirstName"]}";
+    globals.personGender = data[0]["GenderCode"];
+    globals.tokenKey = data[0]["TokenKey"];
+    globals.mobileNumber = data[0]["MobileNumber"];
+    globals.personEmailID = data[0]["EmailID"];
+    updateLocalDatabase();
+
 
     if (widget.firstTimeLogin == true) {
       await updateUserToDatabase(res);
@@ -188,7 +297,7 @@ class _StartScreenState extends State<StartScreen> {
     //await _loginToChatService();
 
     await DatabaseMethods().getUserInfoByID(globals.personCode).then(
-        (snapshot) => snapshot.documents
+            (snapshot) => snapshot.documents
             .forEach((f) => globals.isOnline = f.data['onlineStatus']));
     if (globals.isOnline == null) globals.isOnline = false;
 
@@ -200,12 +309,39 @@ class _StartScreenState extends State<StartScreen> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (context) =>
-            _loginUserType() == "DOCTOR" ? IndexNewDoctor() : IndexNew(),
+        _loginUserType() == "DOCTOR" ? IndexNewDoctor() : IndexNew(),
+        // Added by vrushali for multiple patients list.
+//          _loginUserType() == "PATIENT" ?
+//          data.isNotEmpty? data.length==1?
+//          IndexNew()   :RegisterPatientList():Container(child:Text("Loading"),height:100,width:150)
+//              : IndexNewDoctor(),
+        // End Added by vrushali for multiple patients list.
       ),
-      (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false,
     );
-  }
 
+
+  }
+  multipleuser(FirebaseUser res,List data){
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) =>
+//            RegisterPatientList(res.phoneNumber),
+        RegisterPatientList(data:data,res: res),
+     //   _loginUserType() == "DOCTOR" ? IndexNewDoctor() : IndexNew(),
+        // Added by vrushali for multiple patients list.
+//          _loginUserType() == "PATIENT" ?
+//          data.isNotEmpty? data.length==1?
+//          IndexNew()   :RegisterPatientList():Container(child:Text("Loading"),height:100,width:150)
+//              : IndexNewDoctor(),
+        // End Added by vrushali for multiple patients list.
+      ),
+          (Route<dynamic> route) => false,
+    );
+
+
+  }
   loadHolidays() {
     DatabaseMethods().getHolidays().then((val) {
       setState(() {
@@ -269,6 +405,13 @@ class _StartScreenState extends State<StartScreen> {
       return '';
   }
 
+  String _personCode() {
+    if (globals.personCode != null) {
+      return globals.personCode;
+    } else
+      return '';
+  }
+
   String _getUserData(type) {
     if (globals.user != null) {
       return globals.user[0][type];
@@ -276,12 +419,16 @@ class _StartScreenState extends State<StartScreen> {
       return '';
   }
 
+  List data;
+  var extractdata;
+  //List<PatienRegistrationDetails> data = List<PatienRegistrationDetails>();
   Future<bool> getPatientDetails(phoneNumber) async {
     return await http.post(
         Uri.encodeFull(
           // Changed by Abhi for BVH API
 //            '${globals.apiHostingURL}/Patient/mapp_GetPatientRegDetails'),
-        '${globals.apiHostingURLBVH}/MobileAppPatient/mapp_GetPatientRegDetails'),
+       // '${globals.apiHostingURLBVH}/MobileAppPatient/mapp_GetPatientRegDetails'), // old api
+            "${globals.apiHostingURLBVH}/MobileAppPatient/MobileApp_GetPatientRegDetails"), //new
         // End Changed by Abhi for BVH API
         body: {"MobileNumber": "$phoneNumber"},
         headers: {"Accept": "application/json"}).then((http.Response response) {
@@ -289,16 +436,58 @@ class _StartScreenState extends State<StartScreen> {
       final int statusCode = response.statusCode;
       if (statusCode == 200) {
         var extractdata = jsonDecode(response.body)['patientDetails'];
-        List data = extractdata as List;
-        globals.user = data;
+         data = extractdata as List;
+       // globals.user = data;
+       // print("list data $data");
 
-        if (data != null) {
-          globals.personCode = data[0]["PersonCode"];
-          globals.personName =
-              "${data[0]["Salutation"]} ${data[0]["FirstName"]}";
-          globals.personGender = data[0]["GenderCode"];
-          globals.tokenKey = data[0]["TokenKey"];
-        }
+//        if (data != null) {
+//          globals.personCode = data[0]["PersonCode"];
+//          globals.personName =
+//              "${data[0]["Salutation"]} ${data[0]["FirstName"]}";
+//          globals.personGender = data[0]["GenderCode"];
+//          globals.tokenKey = data[0]["TokenKey"];
+//          globals.mobileNumber = data[0]["MobileNumber"];
+//          globals.personEmailID = data[0]["EmailID"];
+//        }
+//        print(globals.personName);
+
+        return true;
+      } else {
+        return false;
+      }
+    });
+  }
+
+
+  Future<bool> getPatientDetailsPatientID(PatientCode) async {
+    return await http.post(
+        Uri.encodeFull(
+          // Changed by Abhi for BVH API
+//            '${globals.apiHostingURL}/Patient/mapp_GetPatientRegDetails'),
+//           '${globals.apiHostingURLBVH}/MobileAppPatient/mapp_GetPatientRegDetails'), // old api
+            "${globals.apiHostingURLBVH}/MobileAppPatient/GetPatientFromPatientCode"), //new
+        // End Changed by Abhi for BVH API
+//        body: {"MobileNumber": "9999977777"},
+        body: {"PatientCode": "$PatientCode"},
+        headers: {"Accept": "application/json"}).then((http.Response response) {
+      print(response.body);
+      final int statusCode = response.statusCode;
+      if (statusCode == 200) {
+        var extractdata = jsonDecode(response.body)['patientDetails'];
+        data = extractdata as List;
+        // globals.user = data;
+        // print("list data $data");
+
+//        if (data != null) {
+//          globals.personCode = data[0]["PersonCode"];
+//          globals.personName =
+//              "${data[0]["Salutation"]} ${data[0]["FirstName"]}";
+//          globals.personGender = data[0]["GenderCode"];
+//          globals.tokenKey = data[0]["TokenKey"];
+//          globals.mobileNumber = data[0]["MobileNumber"];
+//          globals.personEmailID = data[0]["EmailID"];
+//        }
+//        print(globals.personName);
 
         return true;
       } else {

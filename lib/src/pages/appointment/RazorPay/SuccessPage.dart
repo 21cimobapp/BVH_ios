@@ -22,6 +22,7 @@ class SuccessPage extends StatefulWidget {
 }
 
 class _SuccessPageState extends State<SuccessPage> {
+  String payId="";
   final Color _backgroundColor = Color(0xFFf0f0f0);
   final TextStyle titleTextStyle = TextStyle(
     fontFamily: 'OpenSans',
@@ -38,10 +39,14 @@ class _SuccessPageState extends State<SuccessPage> {
     letterSpacing: .2,
     color: Color(0xff083e64),
   );
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    if(widget.response == null)
+      {payId="";}
+    else{payId=widget.response.paymentId;}
   }
 
   @override
@@ -242,7 +247,7 @@ class _SuccessPageState extends State<SuccessPage> {
                           style: contentTextStyle),
                       SizedBox(height: 20),
                       Text('Payment ID'.toUpperCase(), style: titleTextStyle),
-                      Text("${widget.response.paymentId}",
+                      Text("${payId}",
                           style: contentTextStyle),
                     ],
                   ),

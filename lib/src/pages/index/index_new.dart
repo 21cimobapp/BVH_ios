@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:civideoconnectapp/data_models/PatientAppointmentdetails.dart';
 import 'package:civideoconnectapp/src/pages/Services/Services_list.dart';
 import 'package:civideoconnectapp/src/pages/ViewAppointment_Patient/view_appointment.dart';
 import 'package:civideoconnectapp/src/pages/ViewDocuments.dart';
@@ -16,6 +17,7 @@ Color myGreen = Color(0xff4bb17b);
 
 class IndexNew extends StatefulWidget {
   final String appointmentNumber; //added by vrushali
+  //final PatienRegistrationDetails appDetail_1;
   const IndexNew({Key key,this.appointmentNumber}) : super(key: key);
   @override
   _IndexNewState createState() => _IndexNewState();

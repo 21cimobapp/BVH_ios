@@ -95,7 +95,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       child: Scaffold(
-          resizeToAvoidBottomPadding: false,
+          // resizeToAvoidBottomPadding: false,
           body: SafeArea(
             child: Container(
               width: width,
@@ -200,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                                     startPhoneAuth();
                                   } else if (value == 0) {
                                     Toast.show(
-                                        "This Mobile number not registred with us. Please Register.",
+                                        "This Mobile number not registered with us. Please Register.",
                                         context,
                                         backgroundColor: Colors.red,
                                         backgroundRadius: 5,

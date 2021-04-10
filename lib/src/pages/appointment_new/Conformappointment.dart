@@ -1,8 +1,13 @@
 import 'dart:convert';
+import 'package:civideoconnectapp/src/pages/appointment/RazorPay/SuccessPage.dart';
+import 'package:civideoconnectapp/src/pages/appointment_new/PatientRegDet_card.dart';
+import 'package:civideoconnectapp/src/pages/appointment_new/Reg_PatientDetails.dart';
 import 'package:civideoconnectapp/src/pages/appointment_new/Selectatimeslot.dart';
 import 'package:civideoconnectapp/src/pages/appointment_new/doctor_card_mini.dart';
 import 'package:civideoconnectapp/src/pages/appointment_new/rounded_shadow.dart';
+import 'package:civideoconnectapp/src/pages/appointment_new/serviceList.dart';
 import 'package:civideoconnectapp/src/pages/appointment_new/syles.dart';
+import 'package:civideoconnectapp/src/pages/index/index_new.dart';
 import 'package:civideoconnectapp/utils/Database.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -16,15 +21,17 @@ import 'package:civideoconnectapp/src/pages/appointment/RazorPay/CheckRazor.dart
 import 'package:flutter/material.dart';
 import 'package:civideoconnectapp/globals.dart' as globals;
 import 'package:intl/intl.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class Conformappointment extends StatefulWidget {
   final PatientAppointmentdetails appDetail;
   final DoctorData doctorDet;
+  final List serviceList;
+
   //final String selectedValue;
   // Conformpage(this.time);
-  const Conformappointment({Key key, this.appDetail, this.doctorDet})
+  const Conformappointment({Key key, this.appDetail, this.doctorDet,this.serviceList})
       : super(key: key);
 
   @override
@@ -42,6 +49,9 @@ class _ConformappointmentState extends State<Conformappointment> {
 
   final Color _backgroundColor = Color(0xFFf0f0f0);
   bool consentAccepted = false;
+  ScrollController _scrollController = ScrollController();
+  double _listPadding = 20;
+  bool isClicked = false;
 
   TextStyle get bodyTextStyle => TextStyle(
         color: Color(0xFF083e64),
@@ -82,10 +92,13 @@ class _ConformappointmentState extends State<Conformappointment> {
     );
   }
 
+  String regDetails;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+//    getregistrationDetails();
 
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
     var android = new AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -98,7 +111,21 @@ class _ConformappointmentState extends State<Conformappointment> {
     flutterLocalNotificationsPlugin.initialize(
         InitializationSettings(android, ios),
         onSelectNotification: onSelectNotification);
+
+    widget.appDetail.AppointmentType=="VIDEOCONSULT"? consentAccepted=false:consentAccepted=true;
   }
+
+//  Widget _buildListItem(int index) {
+//    return Container(
+//      margin: EdgeInsets.symmetric(
+//          vertical: _listPadding / 2, horizontal: _listPadding),
+//      child: DoctorCard(
+//          doctorData: _filterdoctor[index],
+//          isOpen: _filterdoctor[index] == _selectedDoctor,
+//          onTap: _handleDoctorTapped,
+//          onOptionSelected: _handleOptionSelected),
+//    );
+//  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,10 +158,20 @@ class _ConformappointmentState extends State<Conformappointment> {
                         padding:
                             const EdgeInsets.only(left: 15, right: 15, top: 10),
                         child: appointmentDetailsBox()),
+//                      child: ApptDetailCard(
+//                          appDetail: widget.appDetail,
+//                          isOpen: isClicked == true,
+//                          onTap: _handleDoctorTapped,
+////                          onOptionSelected: _handleOptionSelected
+//                      ),
+
+//                    ), // Abhi for listing members
+
                   ),
                   SizedBox(
                     height: 10,
                   ),
+                  widget.appDetail.AppointmentType=="VIDEOCONSULT"?
                   Container(
                     child: CheckboxListTile(
                       secondary: const Icon(Icons.warning),
@@ -148,7 +185,9 @@ class _ConformappointmentState extends State<Conformappointment> {
                         });
                       },
                     ),
-                  ),
+                  ):Container(),
+                  widget.appDetail.AppointmentType=="VIDEOCONSULT"?
+
                   Container(
                       //padding: const EdgeInsets.symmetric(horizontal: 10),
                       color: Colors.transparent,
@@ -170,7 +209,7 @@ class _ConformappointmentState extends State<Conformappointment> {
                         //   fillColor: Colors.orangeAccent,
                         //   padding: const EdgeInsets.all(15.0),
                         // )
-                      )),
+                      )):Container(),
                   SizedBox(
                     height: 10,
                   ),
@@ -313,7 +352,8 @@ class _ConformappointmentState extends State<Conformappointment> {
                         opacity: consentAccepted == false ? .5 : 1,
                         child: FlatButton(
                           //Enable the button if we have enough points. Can do this by assigning a onPressed listener, or not.
-                          onPressed: consentAccepted == false
+                          onPressed:
+                          consentAccepted == false
                               ? null
                           : () {
                             print("I am in");
@@ -364,6 +404,26 @@ class _ConformappointmentState extends State<Conformappointment> {
       ),
     );
   }
+  void _handleDoctorTapped(PatientAppointmentdetails data) {
+    setState(() {
+      //If the same drink was tapped twice, un-select it
+      if (isClicked == true) {
+        isClicked = false;
+      }
+      //Open tapped drink card and scroll to it
+      else {
+        isClicked = true;
+        var selectedIndex = 1;
+        var closedHeight = ApptDetailCard.nominalHeightClosed;
+        //Calculate scrollTo offset, subtract a bit so we don't end up perfectly at the top
+        var offset =
+            selectedIndex * (closedHeight + _listPadding) - closedHeight * .35;
+
+//        _scrollController.animateTo(offset,
+//            duration: Duration(milliseconds: 700), curve: Curves.easeOutQuad);
+      }
+    });
+  }
   verifyandLockSlot() async {
     //Added by Abhi for verify and lock the slot.
     var url = "${globals.apiHostingURLBVH}/Patient/ApptVerifyAndLockSlot?DoctorCode=${widget.doctorDet.doctorCode}&DeptCode=${widget.doctorDet.deptCode}"
@@ -377,15 +437,26 @@ class _ConformappointmentState extends State<Conformappointment> {
       print(slotstatus);
       if (slotstatus==1) {
         print("I am in new method");
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => CheckRazor(
-              appDetail: widget.appDetail,
-              doctorDet: widget.doctorDet,
+        //underDevp
+        if(widget.appDetail.ConsultationFee==0)
+          {
+            createContact(widget.appDetail,widget.doctorDet);
+          }
+        else if(widget.appDetail.ConsultationFee>0){
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) =>
+                  CheckRazor(
+                    appDetail: widget.appDetail,
+                    doctorDet: widget.doctorDet,
+                  ),
             ),
-          ),
-              (Route<dynamic> route) => false,
-        );
+                (Route<dynamic> route) => false,
+          );
+        }
+//        else{
+//          showtoast();
+//        }
       }
       else if ( slotstatus==2){
 
@@ -425,17 +496,18 @@ class _ConformappointmentState extends State<Conformappointment> {
             TextButton(
               child: Text('Ok'),
               onPressed: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => Selectatimeslot(
-                        doctorDet: widget.doctorDet,
-                        appointmentType: widget.appDetail.AppointmentType == 1 ? "VIDEOCONSULT"  : "VISITCONSULT",
-                        organizationCode:widget.appDetail.OrganizationCode
-                    ),
-                  ),
-                      (Route<dynamic> route) => false,
-                );
-                //Navigator.of(context).pop();
+//                Navigator.of(context).pushAndRemoveUntil(
+//                  MaterialPageRoute(
+//                    builder: (context) => Selectatimeslot(
+//                        doctorDet: widget.doctorDet,
+//                        appointmentType: widget.appDetail.AppointmentType == 1 ? "VIDEOCONSULT"  : "VISITCONSULT",
+//                        organizationCode:widget.appDetail.OrganizationCode
+//                    ),
+//                  ),
+//                      (Route<dynamic> route) => false,
+//                );
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -444,6 +516,113 @@ class _ConformappointmentState extends State<Conformappointment> {
     );
   }
 
+  createContact(PatientAppointmentdetails appDet,DoctorData docDet) async {
+    var mapData = new Map();
+    mapData["ApptDate"] = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    mapData["PatientCode"] = appDet.PatientCode;
+    mapData["PatientName"] = appDet.PatientName;
+    mapData["GenderACode"] = appDet.GenderCode;
+    mapData["PatientMobileNo"] = appDet.PatientMobile;
+    mapData["PatientEmailID"] = appDet.PatientEmail;
+//        mapData["PatientDOB"] = savedetail.;
+    mapData["DoctorCode"] = appDet.DoctorCode;
+    mapData["ApptRqstDate"]= DateFormat('yyyy-MM-dd').format(appDet.ApptDate);
+    mapData["ApptRqstFromTime"] = appDet.DoctorSlotFromTime1;
+//        mapData["ApptRqstToTime"] = DateFormat("yyyy-MM-dd HH:mm:ss").format(DateFormat('yyyy-MM-dd hh:mm:ss').parse(savedetail.DoctorSlotFromTime).add(Duration(minutes: savedetail.SlotDuration)));
+    mapData["ApptRqstToTime"] = appDet.DoctorSlotToTime1;
+    mapData["DeptCode"] = docDet.deptCode;
+    mapData["ApptSource"] = "M";
+    mapData["ApptMethod"] = "0";
+    mapData["ApptUserCode"] = appDet.PatientCode;
+    mapData["OrganizationCode"] = appDet.OrganizationCode;
+    mapData["ActiveStatus"] = "1";
+    mapData["ApptType"] = appDet.AppointmentType=="VIDEOCONSULT"?"2":"1";
+    mapData["PaidAmt"]=appDet.ConsultationFee;
+    mapData["ServiceCode"]=appDet.ServiceCode;
+    mapData["BillServiceCode"]=appDet.BillServiceCode;
+
+    String json = jsonEncode(mapData);
+    String _serviceUrl = '${globals.apiHostingURLBVH}/patient/SaveApptHeader';
+
+    var _headers = {'Content-Type': 'application/json',"Authorization": 'Bearer ${globals.tokenKey}'};
+    final response =
+        await http.post(_serviceUrl, headers: _headers, body: json);
+    var extractdata = jsonDecode(response.body)['status'];
+    print(extractdata);
+    if (extractdata == 2)
+    {
+      failedmsg();
+    }
+    else if (extractdata == 1) {
+      String appointmentNumber = jsonDecode(response.body)['ApptNumber'];
+      Map<String, dynamic> appDetail = {
+        "appointmentNumber": appointmentNumber,
+        "patientCode": appDet.PatientCode,
+        "doctorCode": appDet.DoctorCode,
+        "apptDate": DateTime.parse(DateFormat('yyyy-MM-dd').format(appDet.ApptDate)),
+        "slotName": appDet.SlotName,
+        "slotNumber": appDet.SlotNumber,
+//        "doctorSlotFromTime": DateFormat('yyyy-MM-dd hh:mm a')
+//            .parse(savedetail.DoctorSlotFromTime),
+        "doctorSlotFromTime": Timestamp.fromDate(
+            DateFormat('yyyy-MM-dd hh:mm').parse(
+                appDet.DoctorSlotFromTime)),
+//        "doctorSlotToTime": DateFormat('yyyy-MM-dd hh:mm a')
+//            .parse(savedetail.DoctorSlotToTime)
+//            .add(Duration(minutes: savedetail.SlotDuration)),
+        "doctorSlotToTime": Timestamp.fromDate(
+            DateFormat('yyyy-MM-dd hh:mm').parse(
+              DateFormat("yyyy-MM-dd HH:mm:ss").format(DateFormat('yyyy-MM-dd hh:mm:ss').parse(appDet.DoctorSlotFromTime).add(Duration(minutes: appDet.SlotDuration))))),
+        "organizationCode": appDet.OrganizationCode,
+        "paymentModeCode": "HCALLPAYONLINE",
+        "appointmentType": appDet.AppointmentType,
+        "patientName": appDet.PatientName,
+        "doctorName": appDet.DoctorName,
+        "departmentName": docDet.designation,
+        "doctorQualification": docDet.qualification,
+        "patientAge": "",
+        "patientGender": appDet.GenderCode,
+        "slotDuration": appDet.SlotDuration,
+        "paymentId": "",
+        "paymentAmount": appDet.ConsultationFee,
+        "signature": "",
+      };
+      DatabaseMethods().addAppointment(appDetail, appointmentNumber);
+
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (BuildContext context) =>
+              SuccessPage(
+                  response: null, appDetail: widget.appDetail,appointmentNumber:appointmentNumber),
+        ),
+            (Route<dynamic> route) => false,
+      );
+    }
+  }
+  Future<bool> failedmsg() {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Time Slot unavailable"),
+        content: Text("The time you selected is already been booked by someone else. Please select another slot"),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () => //exit(0),
+            //Navigator.of(context).pop(true),
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => IndexNew())
+            ),
+            child: Text('Ok'),
+          ),
+        ],
+      ),
+    ) ??
+        false;
+  }
   _updateConsent() {
     setState(() {
       consentAccepted = true;
@@ -515,6 +694,12 @@ class _ConformappointmentState extends State<Conformappointment> {
                               .format(widget.appDetail.ApptDate)
                               .toUpperCase(),
                           style: contentTextStyle),
+
+                      SizedBox(height: 20),
+                      Text('Visit Type'.toUpperCase(),
+                          style: titleTextStyle),
+                      Text(widget.appDetail.VisitType,
+                          style: contentTextStyle),
                     ],
                   ),
                 ),
@@ -545,6 +730,11 @@ class _ConformappointmentState extends State<Conformappointment> {
                           // End Changed by Abhi for firebase to API
                              // .toUpperCase(),
                           style: contentTextStyle),
+                      SizedBox(height: 20),
+                      Text('Consultation Fee'.toUpperCase(),
+                          style: titleTextStyle),
+                      Text("${widget.appDetail.ConsultationFee == null ? "" : widget.appDetail.ConsultationFee}",
+                          style: contentTextStyle),
                     ],
                   ),
                 ),
@@ -554,13 +744,76 @@ class _ConformappointmentState extends State<Conformappointment> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(5.0),
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                 Column(
+            children: [
+              Container(
             color: Colors.grey[400],
-            child: Center(
-              child: GestureDetector(
+            height:30,
+            width: 150,
+            child:
+                GestureDetector(
                   onTap: () {
-                    Navigator.pop(context);
+                    //Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RegistrationDetails(
+                            appDetail: widget.appDetail,
+                            doctorDet: widget.doctorDet,
+                          ),
+                        ));
                   },
-                  child: Text("Change Date and Time", style: contentTextStyle)),
+                 // child:  Alignment(
+
+                  child: Text("Change Patient",textAlign: TextAlign.center, style: //contentTextStyle
+                  TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontSize: 16,
+                    height: 1.5,
+                    letterSpacing: .5,
+                    fontWeight: FontWeight.bold,
+                    color:Color(0xFF083e64) //Color(0xff083e64),
+                  )
+                  )), //),
+              )
+                ] ),
+               // SizedBox(width: 10,),
+                Column(
+                children: [
+                  Container(
+                      color: Colors.grey[400],
+                    height:30,
+                    width: 150,
+                    child:
+                GestureDetector(
+                    onTap: () {
+                      //Navigator.pop(context);
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ServiceList(
+                              appDetail: widget.appDetail,
+                              doctorDet: widget.doctorDet,
+                            ),
+                          ));
+                    },
+                    child: Text("Change Service",textAlign: TextAlign.center, style: //contentTextStyle
+                    TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 16,
+                        height: 1.5,
+                        letterSpacing: .5,
+                        fontWeight: FontWeight.bold,
+                        color:Color(0xFF083e64) //Color(0xff083e64),
+                    )
+                    )),
+                  )
+    ]),
+    ]
             ),
           )
         ],
@@ -583,7 +836,7 @@ class _ConformappointmentState extends State<Conformappointment> {
     }
   }
 
-  createContact(Appointmentsavedetails savedetail) async {
+  createContactold(Appointmentsavedetails savedetail) async {
     try {
       String toJson(Appointmentsavedetails savedetail) {
         var mapData = new Map();

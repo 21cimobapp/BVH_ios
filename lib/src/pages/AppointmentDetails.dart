@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:civideoconnectapp/src/pages/AppointmentDetailsSubmit.dart';
 import 'package:civideoconnectapp/src/pages/home_patient/patient_feeback.dart';
 import 'package:dio/dio.dart';
@@ -27,10 +28,11 @@ class AppointmentScreen extends StatefulWidget {
   /// non-modifiable channel name of the page
   //final int userID;
   final String appointmentNumber;
+  final ViewAppointmentDetails appt1;
   final int isCurrent;
   final DateTime apptTime;
   /// Creates a call page with given channel name.
-  const AppointmentScreen({Key key, this.appointmentNumber,this.isCurrent,this.apptTime}) : super(key: key);
+  const AppointmentScreen({Key key, this.appointmentNumber,this.appt1,this.isCurrent,this.apptTime}) : super(key: key);
 
   @override
   _AppointmentScreenState createState() => _AppointmentScreenState();
@@ -49,8 +51,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   int qIndex = 0;
   TextEditingController numberFieldController = new TextEditingController();
   TextEditingController textFieldController = new TextEditingController();
-  Stream apptStream;
-  DocumentSnapshot appt;
+//  Stream apptStream;
+  // DocumentSnapshot appt;//underapi
+   ViewAppointmentDetails appt;
   bool downloading = false;
   String progressString = '0';
   final Color _backgroundColor = Color(0xFFf0f0f0);
@@ -112,8 +115,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     //
     //});
 
-    apptStream =
-        DatabaseMethods().getAppointmentDetails(widget.appointmentNumber);
+//    apptStream =
+//        DatabaseMethods().getAppointmentDetails(widget.appointmentNumber);
+    appt=widget.appt1;
 
     setPreConsultationData(widget.appointmentNumber);
   }
@@ -161,7 +165,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
             Container(
                 height: 160,
                 child: Hero(
-                  tag: '${appt.data["appointmentNumber"]}',
+//                  tag: '${appt.data["appointmentNumber"]}',//underapi
+                  tag: '${appt.ApptNumber}',
                   child: AppointmentSummary(
                       appt: appt, theme: SummaryTheme.dark, isOpen: true),
                 )),
@@ -210,9 +215,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     DateTime currentDate =
         DateFormat('yyyy-MM-dd').parse(DateTime.now().toString());
 
-    DateTime doctorSlotToTime = DateFormat('yyyy-MM-dd')
-        .parse(appt.data["doctorSlotToTime"].toDate().toString());
-    String appointmentStatus = appt.data["appointmentStatus"];
+//    DateTime doctorSlotToTime = DateFormat('yyyy-MM-dd').parse(appt.data["doctorSlotToTime"].toDate().toString());//underapi
+    DateTime doctorSlotToTime = appt.ApptRqstDate;
+//    String appointmentStatus = appt.data["appointmentStatus"];//underapi
+    String appointmentStatus = appt.AppointmentStatus;
     int apptStatus = 0;
 
     if (doctorSlotToTime.difference(currentDate).inDays >= 0) {
@@ -228,10 +234,12 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       return viewPendingAppointment();
     }
     else {
-      if (appt.data["appointmentStatus"] == "DONE") {
+//      if (appt.data["appointmentStatus"] == "DONE") {//underapi
+        if (appt.AppointmentStatus.toUpperCase() == "DONE") {
         return viewCompletedAppointment();
       } else
-        if (appt.data["appointmentStatus"] == "CANCELLED") {
+//        if (appt.data["appointmentStatus"] == "CANCELLED") {//underapi
+          if (appt.AppointmentStatus.toUpperCase() == "CANCELLED") {
         return viewCancelledAppointment();
       }
         else {
@@ -246,7 +254,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       child: Column(
         children: <Widget>[
           Text(
-            "Appointment starts in ${calculateTime(convertToDate(appt.data["doctorSlotFromTime"]))}",
+//            "Appointment starts in ${calculateTime(convertToDate(appt.data["doctorSlotFromTime"]))}",//underapi
+            "Appointment starts in ${calculateTime(appt.FromTime1)}",//underapi
             style: titleTextStyle,
           ),
           SizedBox(
@@ -479,7 +488,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     );
   }
   Widget checkin(){
-    if(appt.data["appointmentType"] == "VIDEOCONSULT" //&& appt.data["appointmentStatus"] == "PENDING"
+//    if(appt.data["appointmentType"] == "VIDEOCONSULT" //&& appt.data["appointmentStatus"] == "PENDING"// underapi
+    if(appt.ApptType == "VIDEOCONSULT" //&& appt.data["appointmentStatus"] == "PENDING"
     ){
       return proceed();
     }else{
@@ -599,8 +609,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                PatientFeedback(appointmentNumber: appt.data["appointmentNumber"],
-                                  Doctorname:appt.data["doctorName"],), // modified by vrushali
+//                                PatientFeedback(appointmentNumber: appt.data["appointmentNumber"], Doctorname:appt.data["doctorName"],), // underapi
+                            PatientFeedback(appointmentNumber: appt.ApptNumber, Doctorname:appt.DoctorName,),
                           ),
                         )
                       },
@@ -893,8 +903,10 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => ChatPage(
-          peerCode: appt.data["doctorCode"],
-          peerName: appt.data["doctorName"],
+          //peerCode: appt.data["doctorCode"],//underapi
+          //peerName: appt.data["doctorName"],//underapi
+          peerCode: appt.DoctorCode,
+          peerName: appt.DoctorName,
         ),
       ),
     );
@@ -904,7 +916,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     // update input validation
     setState(() {});
 
-    DateTime apptDate = appt.data["apptDate"].toDate();
+    //DateTime apptDate = appt.data["apptDate"].toDate();//underapi
+    DateTime apptDate = appt.ApptRqstDate;
     DateTime currentDate = DateTime.now();
 
     if (currentDate.difference(apptDate).inMinutes <= 1440) {
@@ -1217,24 +1230,26 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot>(
-        stream: apptStream,
+    return Container(
+//      StreamBuilder<DocumentSnapshot>(
+//        stream: apptStream,
         // Firestore.instance
         //     .collection("Appointments")
         //     .document(widget.appointmentNumber)
         //     .snapshots(),
-        builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            return Text("Loading");
-          }
-          appt = snapshot.data;
-
-          _isDetailsSubmitted =
-              appt.data["appointmentDetailsSubmitted"] == "1" ? true : false;
+//        builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+//          if (!snapshot.hasData) {
+//            return Text("Loading");
+//          }
+    child: appt == null? Container(child : Text("Loading")):
+//          appt = snapshot.data;//underapi
+//          appt=widget.appt1;
+//          _isDetailsSubmitted =
+//              appt.data["appointmentDetailsSubmitted"] == "1" ? true : false;
 
           //setPreConsultationData();
 
-          return Scaffold(
+          Scaffold(
             backgroundColor: _backgroundColor,
             appBar: _buildAppBar(),
             body: Stack(
@@ -1243,8 +1258,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                 _toolbar(),
               ],
             ),
-          );
-        });
+           )
+        );
   }
 
   Future<bool> _onBackPressed() {

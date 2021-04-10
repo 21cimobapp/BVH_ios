@@ -98,7 +98,7 @@ class _CheckRazorState extends State<CheckRazor> {
   // }
 
 // for notification
-
+  String key;
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   Future onSelectNotification(String payload) {
     if (payload != null) {
@@ -127,13 +127,14 @@ class _CheckRazorState extends State<CheckRazor> {
 //Future<Appointmentsavedetails> saveappdetail;
 // Changed by Abhi for BVH API.
 //  String _serviceUrl = '${globals.apiHostingURL}/Patient/SaveAppointment';
-  String _serviceUrl = '${globals.apiHostingURLBVH}/appointment/SaveApptHeader';
+  String _serviceUrl = '${globals.apiHostingURLBVH}/patient/SaveApptHeader';
   // End Changed by Abhi for BVH API.
   static final _headers = {'Content-Type': 'application/json',"Authorization": 'Bearer ${globals.tokenKey}'};
 
   Razorpay _razorpay = Razorpay();
   var options;
   Future payData() async {
+
     try {
       _razorpay.open(options);
     } catch (e) {
@@ -170,12 +171,16 @@ class _CheckRazorState extends State<CheckRazor> {
         widget.doctorDet.designation,
         widget.doctorDet.qualification,
         _getUserData("Age"),
-        _getUserData("Gender"),
+        widget.appDetail.GenderCode,
+        widget.appDetail.PatientMobile,
+        widget.appDetail.PatientEmail,
         widget.appDetail.SlotDuration,
         response.paymentId,
         widget.appDetail.ConsultationFee,
         response.signature,
-        widget.doctorDet.deptCode);
+        widget.doctorDet.deptCode,
+        widget.appDetail.ServiceCode,
+        widget.appDetail.BillServiceCode);
 
     createContact(response, apptSaveDet);
 
@@ -232,6 +237,10 @@ class _CheckRazorState extends State<CheckRazor> {
         mapData["ApptDate"] = DateFormat('yyyy-MM-dd').format(DateTime.now());
         mapData["PatientCode"] = savedetail.PatientCode;
         mapData["PatientName"] = savedetail.PatientName;
+        mapData["GenderACode"] = savedetail.PatientGender;
+        mapData["PatientMobileNo"]=savedetail.PatientMobile;
+        mapData["PatientEmailID"]=savedetail.PatientEmail;
+//        mapData["PatientDOB"] = savedetail.;
         mapData["DoctorCode"] = savedetail.DoctorCode;
         mapData["ApptRqstDate"]= savedetail.ApptDate;
         mapData["ApptRqstFromTime"] = savedetail.DoctorSlotFromTime1;
@@ -245,6 +254,8 @@ class _CheckRazorState extends State<CheckRazor> {
         mapData["ActiveStatus"] = "1";
         mapData["ApptType"] = savedetail.AppointmentType=="VIDEOCONSULT"?"2":"1";
         mapData["PaidAmt"]=savedetail.paymentAmount;
+        mapData["ServiceCode"]=savedetail.ServiceCode;
+        mapData["BillServiceCode"]=savedetail.BillServiceCode;
 
 //        mapData["Token"] = savedetail.Token;
 //        mapData["SlotName"] = savedetail.SlotName;
@@ -384,10 +395,47 @@ class _CheckRazorState extends State<CheckRazor> {
     // Do something when an external wallet is selected
   }
 
+  List listOfRazorKey=[];
+  getData() async {
+    await Firestore.instance//.document(widget.appointmentNumber)
+    //.collection('Appointments')
+    //.document(appointmentNumber)
+        .collection("Config")
+        //.where("AppointmentNumber", isEqualTo: widget.appointmentNumber)
+        .getDocuments()
+        .then((QuerySnapshot snapshot) //{
+    => snapshot.documents.forEach(
+            (f) => listOfRazorKey.add(f.data["RazorPayKey"])
+      // print(f.data["AppointmentNumber"])
+    ),
+
+    );
+    print("List of FeedbackSub: $listOfRazorKey");
+
+//    options.key=listOfRazorKey[0];
+//    return listOfRazorKey;
+  }
+
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    setState(() {
+      listOfRazorKey.add(globals.RazorPayKey);
+    });
+
+//    // New Key
+//        DatabaseMethods()
+//        .getRazorPayKey()
+//        .then((val) {
+//      setState(() {
+//        key = val;
+//      });
+//    });
+//    // End New Key
+
+
 
     flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
     var android = new AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -401,14 +449,15 @@ class _CheckRazorState extends State<CheckRazor> {
         onSelectNotification: onSelectNotification);
 
     //appDetail = saveappdetail();
+
     options = {
-      'key':
-          "rzp_test_Bp0ErWtlYXWgp3", // Enter the Key ID generated from the Dashboard
+      'key':listOfRazorKey[0],
+//          "rzp_test_Bp0ErWtlYXWgp3", // Enter the Key ID generated from the Dashboard
 
       'amount': widget.appDetail.ConsultationFee == null
           ? 0
           : widget.appDetail.ConsultationFee *
-              100, //in the smallest currency sub-unit.
+          100, //in the smallest currency sub-unit.
       //'amount': 100,
       'name': 'Bhaktivedanta Hospital',
 

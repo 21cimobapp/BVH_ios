@@ -119,12 +119,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         Row(
                           children: [
                             Text(
-                              'Patient',
+                              'Aasaan',
                               style: TextStyle(
                                   color: Colors.black, fontSize: height * 0.06),
                             ),
                             Text(
-                              'App',
+                              ' 2.0',
                               style: TextStyle(
                                   color: Theme.of(context).primaryColor,
                                   fontSize: height * 0.06),

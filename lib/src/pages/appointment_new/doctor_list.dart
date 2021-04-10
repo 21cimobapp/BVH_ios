@@ -119,9 +119,9 @@ class _DoctorListState extends State<DoctorList> {
                       children: [
                         Text("Find Doctors", style: TextStyle(fontSize: 18)),
                         MaterialButton(
-                            height: 50,
+                            height: 66,
                             color: Colors.indigo,
-                            child: Text("Select by category",
+                            child: Text("Select by Department",
                                 style: TextStyle(
                                     fontSize: 18, color: Colors.white)),
                             onPressed: () {
@@ -259,10 +259,10 @@ class _DoctorListState extends State<DoctorList> {
         var closedHeight = DoctorCard.nominalHeightClosed;
         //Calculate scrollTo offset, subtract a bit so we don't end up perfectly at the top
         var offset =
-            selectedIndex * (closedHeight + _listPadding) - closedHeight * .35;
+            selectedIndex * (closedHeight + _listPadding) - closedHeight * .656;//35;
 
-        _scrollController.animateTo(offset,
-            duration: Duration(milliseconds: 700), curve: Curves.easeOutQuad);
+//        _scrollController.animateTo(offset,
+//            duration: Duration(milliseconds: 700), curve: Curves.easeOutQuad);
       }
     });
   }

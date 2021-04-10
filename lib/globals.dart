@@ -14,7 +14,8 @@ String personGender;
 String tokenKey;
 bool isOnline = false;
 String msgRTM;
-
+String mobileNumber;
+String personEmailID;
 bool isLogin = false;
 AgoraRtmClient clientRTM;
 //AgoraRtmChannel channelRTM;
@@ -23,8 +24,11 @@ Color appTextColor = Colors.white;
 Color appSecondColor = Color(0xff4bb17b);
 List<HolidayData> holidayList = List<HolidayData>();
 
+String RazorPayKey;
+
 final apiHostingURL = "http://devp.21ci.com:81/MobileAppEx";
-final apiHostingURLBVH = "http://devp.21ci.com:81/BVHApptPortalAPI/api";
+//final apiHostingURLBVH = "http://devp.21ci.com:81/BVHApptPortalAPI/api";
+final apiHostingURLBVH = "https://api.bhaktivedantahospital.com:61/BVHPortalAPITest/api";
 //final apiHostingURL = "http://patient.bhaktivedantahospital.com/MobileAppEx";
 
 getProfilePic(userType) {

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math';
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:civideoconnectapp/src/pages/viewAppointment_Patient/view_appointmentPast.dart';
 import 'package:flutter/material.dart';
 import 'demo_data.dart';
@@ -7,6 +9,7 @@ import 'package:civideoconnectapp/utils/Database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:civideoconnectapp/src/pages/AppointmentDetails.dart';
 import 'package:civideoconnectapp/globals.dart' as globals;
+import 'package:http/http.dart' as http;
 
 class ViewAppointment extends StatefulWidget {
   @override
@@ -19,11 +22,57 @@ class _ViewAppointmentState extends State<ViewAppointment> {
   final ScrollController _scrollController = ScrollController();
   // Stream<QuerySnapshot> appointments1;
   // Stream<QuerySnapshot> appointments2;
-  Stream<QuerySnapshot> appointments;
+  List<ViewAppointmentDetails> _appointment = List<ViewAppointmentDetails>();
+//  Stream<QuerySnapshot> appointments;
   final List<int> _openTickets = [];
 
   List<bool> isSelected;
   int selectedIndex = 0;
+
+  //underapi
+  //Stream<ViewAppointmentDetails> appointments1_New;
+  var doc = List<ViewAppointmentDetails>();
+
+  Future<List<ViewAppointmentDetails>> apiData() async {
+
+    var url = "${globals.apiHostingURLBVH}/MobileAppPatient/ViewAppointmentList";
+//    url="http://devp.21ci.com:81/BVHApptPortalAPI/api/MobileAppPatient/ViewAppointmentList";
+    var response = await http.post(url,
+        headers: {"Authorization": 'Bearer ${globals.tokenKey}'},
+        body: {
+       "PatientCode": "${globals.personCode}"
+     }
+    );
+//    var doc = List<ViewAppointmentDetails>();
+//    final Stream<List<int>> _posts = Stream<List<int>>.fromIterable(
+//      <List<int>>[
+//        List<int>.generate(10, (int i) => i),
+//      ],
+//    );
+    print("Hello 2${response.statusCode}");
+    if (response.statusCode == 200) {
+      List patientJson = json.decode(response.body)['PatientAppointList'];
+      if (patientJson.isNotEmpty) {
+        for (var notejson in patientJson) {
+
+          String a1 = notejson["ApptPeriod"];
+          if (a1 == "1")
+          {
+            doc.add(ViewAppointmentDetails.fromJson(notejson));
+          }
+          //appointments1_New=notejson;
+  }
+        return doc;
+      }
+    }
+  }
+
+//  Stream<ViewAppointmentDetails> getNumbers(Duration refreshTime) async* {
+//    while (true) {
+//      await Future.delayed(refreshTime);
+//      yield await apiData();
+//    }
+//  }
 
   @override
   void initState() {
@@ -31,20 +80,27 @@ class _ViewAppointmentState extends State<ViewAppointment> {
 
     isSelected = [true, false];
 
-    getStream(0);
-    // DatabaseMethods().getPatientAppointments(globals.personCode).then((val) {
-    //   setState(() {
-    //     appointments1 = val;
-    //   });
-    // });
+//    getStream(0);
 
-    // DatabaseMethods()
-    //     .getPatientAppointmentsPast(globals.personCode)
-    //     .then((val) {
-    //   setState(() {
-    //     appointments2 = val;
-    //   });
-    // });
+    apiData().then((value) {
+      setState(() {
+        _appointment.addAll(value);
+      });
+    }); //underapi
+
+//    // DatabaseMethods().getPatientAppointments(globals.personCode).then((val) {
+//    //   setState(() {
+//    //     appointments1 = val;
+//    //   });
+//    // });
+//
+//    // DatabaseMethods()
+//    //     .getPatientAppointmentsPast(globals.personCode)
+//    //     .then((val) {
+//    //   setState(() {
+//    //     appointments2 = val;
+//    //   });
+//    // });
   }
 
   @override
@@ -127,7 +183,7 @@ class _ViewAppointmentState extends State<ViewAppointment> {
                 padding: const EdgeInsets.all(8.0),
                 child: Center(
                   child: Text(
-                    'Current',
+                    'Pending',
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
@@ -157,13 +213,15 @@ class _ViewAppointmentState extends State<ViewAppointment> {
           ),
           SizedBox(height: 5),
           Expanded(
-            child: StreamBuilder(
-                stream:
-                    appointments, //selectedIndex == 0 ? appointments1 : appointments2,
-                builder: (context, snapshot) {
-                  return snapshot.hasData
-                      ? snapshot.data.documents.length == 0
-                          ? Container(
+//            child: StreamBuilder(
+//                stream: //appointments1_New,
+//                    appointments, //selectedIndex == 0 ? appointments1 : appointments2,
+//                builder: (context, snapshot) {
+//                  return snapshot.hasData
+//                      ? snapshot.data.documents.length == 0
+          child: _appointment!=null ?
+          _appointment.length==0
+          ? Container(
                               height: 80,
                               width: MediaQuery.of(context).size.width,
                               color: Colors.grey[200],
@@ -177,50 +235,50 @@ class _ViewAppointmentState extends State<ViewAppointment> {
                           : ListView.builder(
                               controller: _scrollController,
                               physics: BouncingScrollPhysics(),
-                              itemCount: snapshot.data.documents.length,
+                              itemCount: _appointment.length,//snapshot.data.documents.length,
                               itemBuilder: (BuildContext context, int index) {
                                 return Container(
                                   child: Hero(
-                                    tag:
-                                        '${snapshot.data.documents[index].data["appointmentNumber"]}',
-                                    child: getAppointmentCard(
-                                        snapshot.data.documents[index], index),
+                                    tag:'${_appointment[index].ApptNumber}',
+                                        //'${snapshot.data.documents[index].data["appointmentNumber"]}',
+                                    child: getAppointmentCard( _appointment[index],index),
+                                        //snapshot.data.documents[index], index),
                                   ),
                                 );
                               },
                             )
                       : Container(
-                          child: Text("Loading data..."),
-                        );
-                }),
+                          child: Text("Loading data..."), )
+                       // );
+               // }),
           ),
         ]),
       ),
     );
   }
 
-  getStream(index) {
-    if (index == 0) {
-      DatabaseMethods().getPatientAppointments(globals.personCode).then((val) {
-        setState(() {
-          appointments = val;
-        });
-      });
-    } else {
-      DatabaseMethods()
-          .getPatientAppointmentsPast(globals.personCode)
-          .then((val) {
-        setState(() {
-          appointments = val;
-        });
-      });
-    }
-
-    // if (index == 0)
-    //   return appointments1;
-    // else
-    //   return appointments2;
-  }
+//  getStream(index) {
+//    if (index == 0) {
+//      DatabaseMethods().getPatientAppointments(globals.personCode).then((val) {
+//        setState(() {
+//          appointments = val;
+//        });
+//      });
+//    } else {
+//      DatabaseMethods()
+//          .getPatientAppointmentsPast(globals.personCode)
+//          .then((val) {
+//        setState(() {
+//          appointments = val;
+//        });
+//      });
+//    }
+//
+//    // if (index == 0)
+//    //   return appointments1;
+//    // else
+//    //   return appointments2;
+//  }
 
   Widget getAppointmentCard(appt, index) {
     Widget apptCard;
@@ -234,14 +292,17 @@ class _ViewAppointmentState extends State<ViewAppointment> {
     return apptCard;
   }
 
-  bool _handleViewAppointment(DocumentSnapshot appt) {
+  bool _handleViewAppointment(ViewAppointmentDetails appt) {
     Navigator.of(context).push(
       PageRouteBuilder(
         transitionDuration: Duration(milliseconds: 1000),
         pageBuilder: (BuildContext context, Animation<double> animation,
             Animation<double> secondaryAnimation) {
           return AppointmentScreen(
-            appointmentNumber: appt.data["appointmentNumber"],
+//            appointmentNumber: appt.data["appointmentNumber"],//underapi
+            appointmentNumber: appt.ApptNumber,
+            appt1: appt,
+            isCurrent:1
           );
         },
         transitionsBuilder: (BuildContext context, Animation<double> animation,

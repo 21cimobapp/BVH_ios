@@ -27,6 +27,7 @@ class Selectatimeslot extends StatefulWidget {
 class _SelectatimeslotState extends State<Selectatimeslot> {
   final Color _backgroundColor = Color(0xFFf0f0f0);
   DateTime selectedDate = DateTime.now();
+
   //final DateFormat dateFormat = DateFormat('yyyy-MM-dd HH:mm');
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd'); //added line
   List<PatientAppointment> _appointment = List<PatientAppointment>();
@@ -39,37 +40,42 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
   Iterable<TimeOfDay> slots;
   bool isDisabled = true;
   PatientAppointment selectedSlot;
-   Future<List<PatientAppointment>> apiData(selectedAppointmentDate) async {
+
+  Future<List<PatientAppointment>> apiData(selectedAppointmentDate) async {
 //     var url = "${globals.apiHostingURL}/Patient/GetDoctorsSlot";
-     var apiDate = DateFormat('yyyy-MM-dd').format(selectedAppointmentDate);
-     var isVideoConsult = widget.appointmentType == "VIDEOCONSULT" ? 1 : 0;
-     var url = "${globals.apiHostingURLBVH}/appointment/GetSlots?DoctorCode=${widget.doctorDet.doctorCode}&DeptCode=${widget.doctorDet.deptCode}"
-         "&OrganizationCode=${widget.organizationCode}&ApptDate=$apiDate&Source=M&video=$isVideoConsult";
-     var response = await http.get(url,
-         headers: {"Authorization": 'Bearer ${globals.tokenKey}'}
+    var apiDate = DateFormat('yyyy-MM-dd').format(selectedAppointmentDate);
+    var isVideoConsult = widget.appointmentType == "VIDEOCONSULT" ? 1 : 0;
+    var url = "${globals
+        .apiHostingURLBVH}/appointment/GetSlots?DoctorCode=${widget.doctorDet
+        .doctorCode}&DeptCode=${widget.doctorDet.deptCode}"
+        "&OrganizationCode=${widget
+        .organizationCode}&ApptDate=$apiDate&Source=M&video=$isVideoConsult";
+    var response = await http.get(url,
+        headers: {"Authorization": 'Bearer ${globals.tokenKey}'}
 //         body: {
 //       "DoctorCode": "${widget.doctorDet.doctorCode}",
 //       "ApptRqstDate": "$selectedAppointmentDate",
 //       "AppointmentType": "All",
 //       "OrgnCode": "ABCH"
 //     }
-     );
+    );
 
 //     var extractdata = jsonDecode(response.body)['ApptSlotDate'];
 //     print(extractdata);
-     var doc = List<PatientAppointment>();
-     if (response.statusCode == 200) {
-       List patientJson = json.decode(response.body)['ApptSlotDate'][0]['ApptSlotDateDetail'];
-       if (patientJson.isNotEmpty) {
-         for (var notejson in patientJson) {
-           doc.add(PatientAppointment.fromJsonnew(notejson));
-         }
-       }
-     }
-     return doc;
-     //var extractdata = jsonDecode(response.body);
-     //print(extractdata);
-   }
+    var doc = List<PatientAppointment>();
+    if (response.statusCode == 200) {
+      List patientJson = json.decode(
+          response.body)['ApptSlotDate'][0]['ApptSlotDateDetail'];
+      if (patientJson != null) {
+        for (var notejson in patientJson) {
+          doc.add(PatientAppointment.fromJsonnew(notejson));
+        }
+      }
+    }
+    return doc;
+    //var extractdata = jsonDecode(response.body);
+    //print(extractdata);
+  }
 
   // added by vrushali
   DateTime convertToDate(String input) {
@@ -90,12 +96,12 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
         : initialDate);
 
     //var result
-    final DateTime picked= await showDatePicker(
+    final DateTime picked = await showDatePicker(
         context: context,
         initialDate: initialDate,
         firstDate: new DateTime.now(),
         lastDate: new DateTime(2022)
-    );//new DateTime.now());
+    ); //new DateTime.now());
 
 
     //if (result == null) return;
@@ -125,12 +131,13 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
 
 //    apptDet
 
-    _datecontroller.text = new DateFormat('dd-MM-yyyy').format(DateTime.now()); // added by vrushali
-     apiData(DateTime.now()).then((value) {
-       setState(() {
-         _appointment.addAll(value);
-       });
-     });
+    _datecontroller.text = new DateFormat('dd-MM-yyyy').format(
+        DateTime.now()); // added by vrushali
+    apiData(DateTime.now()).then((value) {
+      setState(() {
+        _appointment.addAll(value);
+      });
+    });
 
 //    getSlots(DateTime.now());
   }
@@ -138,7 +145,7 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
   getSlots(DateTime date) async {
     await DatabaseMethods()
         .getDoctorSessions(widget.doctorDet.doctorCode,
-            widget.appointmentType == "VIDEOCONSULT" ? 1 : 0)
+        widget.appointmentType == "VIDEOCONSULT" ? 1 : 0)
         .then((value) => {sessionDet = value});
 
     generateSlots(date);
@@ -153,9 +160,9 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
 
     await DatabaseMethods()
         .getDoctorAppointmentSlots(
-            widget.doctorDet.doctorCode,
-            DateFormat('yyyy-MM-dd')
-                .parse(DateFormat('yyyy-MM-dd').format(date)))
+        widget.doctorDet.doctorCode,
+        DateFormat('yyyy-MM-dd')
+            .parse(DateFormat('yyyy-MM-dd').format(date)))
         .then((value) => {aSlots.addAll(value)});
 
     sessionsForDay
@@ -194,14 +201,15 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
     List<AppointmentSlots> sList = List<AppointmentSlots>();
 
     DateTime t1 = DateFormat('yyyy-MM-dd hh:mm a').parse(
-        "${DateFormat('yyyy-MM-dd').format(date)} ${timeOfDayToString(currSlot)}");
+        "${DateFormat('yyyy-MM-dd').format(date)} ${timeOfDayToString(
+            currSlot)}");
 
     if (t1.isBefore(DateTime.now()))
       return true;
     else {
       sList.addAll(aSlots.where((element) =>
-          DateFormat('hh:mm a').parse(
-              DateFormat('hh:mm a').format(element.doctorSlotFromTime)) ==
+      DateFormat('hh:mm a').parse(
+          DateFormat('hh:mm a').format(element.doctorSlotFromTime)) ==
           DateFormat('hh:mm a').parse(timeOfDayToString(currSlot))));
 
       if (sList == null)
@@ -228,8 +236,8 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
     return format.format(dt);
   }
 
-  Iterable<TimeOfDay> getTimes(
-      TimeOfDay startTime, TimeOfDay endTime, Duration step) sync* {
+  Iterable<TimeOfDay> getTimes(TimeOfDay startTime, TimeOfDay endTime,
+      Duration step) sync* {
     var hour = startTime.hour;
     var minute = startTime.minute;
 
@@ -279,55 +287,62 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
 //                  Padding(
 //                    padding:
 //                        const EdgeInsets.only(left: 15, right: 15, bottom: 60),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                 children: [
-                 //child :
-                  Expanded(
-                      child: Container(
-                          child: Column(
-                        children: <Widget>[
-                          Container(
-                            padding: const EdgeInsets.only(top: 10, bottom: 10),
-                            child: RoundedShadow.fromRadius(
-                              12,
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        //child :
+                        Expanded(
+                          child: Container(
                               child: Column(
-                                children: [
+                                children: <Widget>[
                                   Container(
-                                    height: 30,
-                                    color: Colors.white,
-                                    child: _buildLogoHeader(),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.all(5.0),
-                                    color: Colors.white,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: <Widget>[
-
-                                        new Row(children: <Widget>[ //added by vrushali
-                                          SizedBox(width : 40.0),
+                                    padding: const EdgeInsets.only(
+                                        top: 10, bottom: 10),
+                                    child: RoundedShadow.fromRadius(
+                                      12,
+                                      child: Column(
+                                        children: [
                                           Container(
-                                            width: 100,
-                                            child:
-                                            Text("Appointment Date",style: TextStyle( //fontWeight: FontWeight.bold,
-                                                color:Color(0xFF083e64))), ),
-                                          SizedBox(width : 10.0),
-                                          new Container(
-                                              width: MediaQuery.of(context).size.width - 300,
-                                              child:
-                                              new TextField(
-                                                decoration: new InputDecoration(
+                                            height: 30,
+                                            color: Colors.white,
+                                            child: _buildLogoHeader(),
+                                          ),
+                                          Container(
+                                            padding: EdgeInsets.all(5.0),
+                                            color: Colors.white,
+                                            child: Column(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                              children: <Widget>[
+
+                                                new Row(children: <Widget>[
+                                                  //added by vrushali
+                                                  SizedBox(width: 40.0),
+                                                  Container(
+                                                    width: 100,
+                                                    child:
+                                                    Text("Appointment Date",
+                                                        style: TextStyle( //fontWeight: FontWeight.bold,
+                                                            color: Color(
+                                                                0xFF083e64))),),
+                                                  SizedBox(width: 10.0),
+                                                  new Container(
+                                                      width: MediaQuery
+                                                          .of(context)
+                                                          .size
+                                                          .width - 300,
+                                                      child:
+                                                      new TextField(
+                                                        decoration: new InputDecoration(
 //                                                  icon: const Icon(Icons.calendar_today),
 //                                                  //hintText: 'Enter your date of birth',
-                                                  // labelText: 'Appointment Date',
-                                                ),
-                                                //textInputAction :TextInputAction.none,
-                                                controller: _datecontroller,
-                                                readOnly: true,
+                                                          // labelText: 'Appointment Date',
+                                                        ),
+                                                        //textInputAction :TextInputAction.none,
+                                                        controller: _datecontroller,
+                                                        readOnly: true,
 //                                                onTap: _chooseDate(context, _datecontroller.text),
-                                                //keyboardType: TextInputType.datetime,
+                                                        //keyboardType: TextInputType.datetime,
 //                                                onChanged: (content) {
 //                                                  setState(() {
 //                                                    selectedAppointmentDate = content as DateTime;//date as DateTime ;
@@ -341,19 +356,21 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
 //                                                  });
 //                                                },
 
-                                                //onSaved: (val) =>
+                                                        //onSaved: (val) =>
 
 
-                                                //newContact.DateOfBirth = convertToDate(val),
-                                              )),
-                                          new IconButton(
-                                            icon: new Icon(Icons.calendar_today),
-                                            tooltip: 'Choose date',
-                                            onPressed: (() {
-                                              _chooseDate(context, _datecontroller.text);
-                                            }),
-                                          )
-                                        ]),
+                                                        //newContact.DateOfBirth = convertToDate(val),
+                                                      )),
+                                                  new IconButton(
+                                                    icon: new Icon(
+                                                        Icons.calendar_today),
+                                                    tooltip: 'Choose date',
+                                                    onPressed: (() {
+                                                      _chooseDate(context,
+                                                          _datecontroller.text);
+                                                    }),
+                                                  )
+                                                ]),
 
 //                                        DatePicker( // commented by vrushali
 //                                          DateTime.now().add(Duration(days: 0)),
@@ -380,30 +397,32 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
 //                                            });
 //                                          },
 //                                        ),
-                                      ],
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                              color: Colors.white,
+                                              child: Column(
+                                                children: <Widget>[
+                                                  Container(
+                                                    padding: EdgeInsets.all(
+                                                        10.0),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                      children: showSlots(),
+                                                    ),
+                                                  )
+                                                ],
+                                              ))
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  Container(
-                                      color: Colors.white,
-                                      child: Column(
-                                        children: <Widget>[
-                                          Container(
-                                            padding: EdgeInsets.all(10.0),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: showSlots(),
-                                            ),
-                                          )
-                                        ],
-                                      ))
                                 ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      )),
-                    ),]
+                              )),
+                        ),
+                      ]
                   ),
 
                 ],
@@ -431,7 +450,9 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
                           Text(
                             // Changed by Abhi for BVH API
 //                              "${selectedSlot == null ? consultationFee == null ? "" : consultationFee : selectedSlot.ConsultationFee.toString()}",
-                              widget.appointmentType == "VIDEOCONSULT"?"${widget.doctorDet.VideoConsultCharge}":"${widget.doctorDet.VisitConsultCharge}",
+                              widget.appointmentType == "VIDEOCONSULT"
+                                  ? "${widget.doctorDet.VideoConsultCharge}"
+                                  : "${widget.doctorDet.VisitConsultCharge}",
                               // End Changed by Abhi for BVH API
                               style: Styles.text(16, Colors.black, true)),
                         ],
@@ -447,13 +468,13 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
                           onPressed: isDisabled
                               ? null
                               : () {
-                                  confirmAppointment(selectedSlot);
-                                },
+                            confirmAppointment(selectedSlot);
+                          },
                           color: Colors.orangeAccent,
                           disabledColor: Colors.orangeAccent,
                           shape: RoundedRectangleBorder(
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(12))),
+                              BorderRadius.all(Radius.circular(12))),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -547,7 +568,7 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
         sessions.add(Container(
             child: Center(
                 child:
-                    Text('Pick Time Slot', style: TextStyle(fontSize: 15)))));
+                Text('Pick Time Slot', style: TextStyle(fontSize: 15)))));
 
         sessions.addAll(generateSlot(0));
         // Changed by Abhi for firebase to API
@@ -580,7 +601,9 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
   generateSlot(session) {
     List<PatientAppointment> _sessionfilter = List<PatientAppointment>();
     List<Widget> sessionSlot = [];
-    var size = MediaQuery.of(context).size;
+    var size = MediaQuery
+        .of(context)
+        .size;
     print(size);
     final double itemHeight = (size.height - kToolbarHeight - 24) / 10;
     print(itemHeight);
@@ -604,100 +627,145 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
 
       sessionSlot.add(Container(
           child: GridView.count(
-        // crossAxisCount is the number of columns
-        crossAxisCount: 3,
-        childAspectRatio: (itemWidth / itemHeight),
-        controller: new ScrollController(keepScrollOffset: false),
-        shrinkWrap: true,
-        scrollDirection: Axis.vertical,
-        // This creates two columns with two items in each column
-        children: List.generate(_sessionfilter.length, (index) {
-          return GestureDetector(
-            onTap: () {
-              if (_sessionfilter[index].SlotAvailable == "AVL")
-                setState(() {
-                  if (selectedSlot == _sessionfilter[index]) {
-                    selectedSlot = null;
-                    isDisabled = true;
-                  } else {
-                    selectedSlot = _sessionfilter[index];
-                    isDisabled = false;
-                  }
-                });
-              //confirmAppointment(_sessionfilter[index]);
-            },
-            //  child: Card(
-            // elevation: 2.0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: selectedSlot != null
-                    ? selectedSlot == _sessionfilter[index]
-                        ? Theme.of(context).primaryColor
+            // crossAxisCount is the number of columns
+            crossAxisCount: 3,
+            childAspectRatio: (itemWidth / itemHeight),
+            controller: new ScrollController(keepScrollOffset: false),
+            shrinkWrap: true,
+            scrollDirection: Axis.vertical,
+            // This creates two columns with two items in each column
+            children: List.generate(_sessionfilter.length, (index) {
+              return GestureDetector(
+                onTap: () {
+                  if (_sessionfilter[index].SlotAvailable == "AVL")
+                    setState(() {
+                      if (selectedSlot == _sessionfilter[index]) {
+                        selectedSlot = null;
+                        isDisabled = true;
+                      } else {
+                        selectedSlot = _sessionfilter[index];
+                        isDisabled = false;
+                      }
+                    });
+                  //confirmAppointment(_sessionfilter[index]);
+                },
+                //  child: Card(
+                // elevation: 2.0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: selectedSlot != null
+                        ? selectedSlot == _sessionfilter[index]
+                        ? Theme
+                        .of(context)
+                        .primaryColor
                         : Colors.white
-                    : Colors.white,
-                border: Border.all(
-                    color: _sessionfilter[index].SlotAvailable == "AVL"
-                        ? Theme.of(context).primaryColor
-                        : Colors.grey[200]),
-                borderRadius: BorderRadius.circular(5.0),
-              ),
-              margin: new EdgeInsets.all(4.0),
-              child: new Center(
-                //child: new Text(_sessionfilter[index].SlotTimeLabel.split('-')[0]),
-                child: new Text(_sessionfilter[index].SlotTimeLabel,
-                    style: TextStyle(
-                      color: _sessionfilter[index].SlotAvailable == "AVL"
-                          ? selectedSlot != null
+                        : Colors.white,
+                    border: Border.all(
+                        color: _sessionfilter[index].SlotAvailable == "AVL"
+                            ? Theme
+                            .of(context)
+                            .primaryColor
+                            : Colors.grey[200]),
+                    borderRadius: BorderRadius.circular(5.0),
+                  ),
+                  margin: new EdgeInsets.all(4.0),
+                  child: new Center(
+                    //child: new Text(_sessionfilter[index].SlotTimeLabel.split('-')[0]),
+                    child: new Text(_sessionfilter[index].SlotTimeLabel,
+                        style: TextStyle(
+                          color: _sessionfilter[index].SlotAvailable == "AVL"
+                              ? selectedSlot != null
                               ? selectedSlot == _sessionfilter[index]
-                                  ? Colors.white
-                                  : Colors.black
+                              ? Colors.white
                               : Colors.black
-                          : Colors.grey[400],
-                    )),
-              ),
-            ),
-            // ),
-          );
-        }),
-      )));
+                              : Colors.black
+                              : Colors.grey[400],
+                        )),
+                  ),
+                ),
+                // ),
+              );
+            }),
+          )));
     } else
       sessionSlot.add(Container());
 
     return sessionSlot;
   }
 
-  confirmAppointment(PatientAppointment selectedSlot) {
+  confirmAppointment(PatientAppointment selectedSlot) async {
     apptDet = new PatientAppointmentdetails(
         globals.personCode,
         "${_getUserData("FirstName")} ${_getUserData("LastName")}",
+        globals.personGender,
+        globals.mobileNumber,
+        globals.personEmailID,
         widget.doctorDet.doctorCode,
         widget.doctorDet.doctorName,
         widget.doctorDet.designation,
         selectedAppointmentDate,
         selectedSlot.SlotTimeLabel,
         selectedSlot.SlotNumber,
-        "${DateFormat('yyyy-MM-dd').format(selectedAppointmentDate)} ${selectedSlot.DoctorSlotFromTime}",
+        "${DateFormat('yyyy-MM-dd').format(
+            selectedAppointmentDate)} ${selectedSlot.DoctorSlotFromTime}",
 //        "${DateFormat('yyyy-MM-dd').format(selectedAppointmentDate)} ${selectedSlot.DoctorSlotToTime}",
-        "${DateFormat('yyyy-MM-dd').format(selectedAppointmentDate)} ${selectedSlot.DoctorSlotToTime}",
+        "${DateFormat('yyyy-MM-dd').format(
+            selectedAppointmentDate)} ${selectedSlot.DoctorSlotToTime}",
         selectedSlot.DoctorSlotFromTime,
         selectedSlot.DoctorSlotToTime,
         selectedSlot.SlotTimeLabel,
         widget.appointmentType,
         selectedSlot.SlotDuration,
 //        selectedSlot.ConsultationFee == null?500:selectedSlot.ConsultationFee
-        widget.appointmentType == "VIDEOCONSULT"?widget.doctorDet.VideoConsultCharge.toInt():widget.doctorDet.VisitConsultCharge.toInt(),
+        widget.appointmentType == "VIDEOCONSULT" ? widget.doctorDet
+            .VideoConsultCharge.toInt() : widget.doctorDet.VisitConsultCharge
+            .toInt(),
+        "","",
         widget.organizationCode
-        );
+
+    );
+    var url1 = "${globals
+        .apiHostingURLBVH}/Patient/GetServiceList?DoctorCode=${widget.doctorDet
+        .doctorCode}";
+    var response1 = await http.get(url1,
+        headers: {"Authorization": 'Bearer ${globals.tokenKey}'}
+    );
+
+    if (response1.statusCode == 200) {
+      List serviceList = json.decode(response1.body);
+      print(serviceList.length);
+      if (serviceList.isNotEmpty) {
+        apptDet.ServiceCode = serviceList[0]['ServiceCode'];
+    String aaptDate = DateFormat('yyyy-MM-dd').format(apptDet.ApptDate);
+    var url = "${globals.apiHostingURLBVH}/Patient/GetPatApptType?patientcode=${apptDet.PatientCode}&DoctorCode=${widget.doctorDet.doctorCode}&RqstServiceCode=${apptDet.ServiceCode}&apptRqstDate=${aaptDate}";
+//    var url = "http://devp.21ci.com:81/BVHPortalapitemp/api/Patient/GetPatApptType?patientcode=${apptDet.PatientCode}&DoctorCode=${widget.doctorDet.doctorCode}&apptRqstDate=${aaptDate}";
+
+    var response = await http.get(url,
+        headers: {"Authorization": 'Bearer ${globals.tokenKey}'}
+    );
 
 
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Conformappointment(
-            appDetail: apptDet,
-            doctorDet: widget.doctorDet,
-          ),
-        ));
+    if (response.statusCode == 200) {
+      int drFee = json.decode(response.body)['DrFee'];
+      if (drFee != null) {
+//          doc.add(PatientAppointment.fromJsonnew(notejson));
+        apptDet.ConsultationFee = drFee;
+        apptDet.VisitType = json.decode(response.body)['VisitType'];
+        apptDet.BillServiceCode = json.decode(response.body)['ServiceCode'];
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  Conformappointment(
+                    appDetail: apptDet,
+                    doctorDet: widget.doctorDet,
+                    serviceList:serviceList,
+                  ),
+            ));
+      }
+    }
+  }
+}
   }
 
   Image getDoctorPhoto(i) {

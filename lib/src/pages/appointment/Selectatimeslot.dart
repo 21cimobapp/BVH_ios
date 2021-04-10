@@ -447,6 +447,9 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
     apptDet = new PatientAppointmentdetails(
         globals.personCode,
         "${_getUserData("FirstName")} ${_getUserData("LastName")}",
+        globals.personGender,
+        globals.mobileNumber,
+        globals.personEmailID,
         widget.doctorDet.doctorCode,
         widget.doctorDet.doctorName,
         widget.doctorDet.qualification,
@@ -460,7 +463,7 @@ class _SelectatimeslotState extends State<Selectatimeslot> {
         selectedSlot.SlotTimeLabel,
         widget.appointmenttType,
         selectedSlot.SlotDuration,
-        selectedSlot.ConsultationFee,'');
+        selectedSlot.ConsultationFee,'','','');
 
     Navigator.push(
         context,

@@ -540,7 +540,7 @@ class ContactService {
       mapData["DateOfBirth"] = null;
     else
       mapData["DateOfBirth"] =
-          new DateFormat('dd-MMM-yyyy').format(contact.DateOfBirth);
+          new DateFormat('yyyy-MM-dd').format(contact.DateOfBirth);
     //mapData["DateOfBirth"] = new DateFormat.yMd().format(contact.DateOfBirth);
     mapData["MobileNumber"] = contact.MobileNumber.substring(3);
     mapData["EmailID"] = contact.EmailID;

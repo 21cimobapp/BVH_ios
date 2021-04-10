@@ -1,3 +1,4 @@
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -11,7 +12,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Appointment extends StatefulWidget {
   static const double nominalOpenHeight = 400;
   static const double nominalClosedHeight = 160;
-  final DocumentSnapshot appt;
+//  final DocumentSnapshot appt; //underapi
+  final ViewAppointmentDetails appt;
   final Function onClick;
   final Function onViewClick;
 

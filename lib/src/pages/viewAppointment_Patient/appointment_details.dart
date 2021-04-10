@@ -1,3 +1,4 @@
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:civideoconnectapp/globals.dart' as globals;
@@ -5,7 +6,8 @@ import 'demo_data.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AppointmentDetails extends StatelessWidget {
-  final DocumentSnapshot appt;
+  //final DocumentSnapshot appt;//underapi
+  final ViewAppointmentDetails appt;
   final TextStyle titleTextStyle = TextStyle(
     fontFamily: 'OpenSans',
     fontSize: 11,
@@ -42,12 +44,14 @@ class AppointmentDetails extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Pateint Code'.toUpperCase(), style: titleTextStyle),
-                  Text(appt.data["patientCode"], style: contentTextStyle),
+//                  Text(appt.data["patientCode"], style: contentTextStyle), //underapi
+                  Text(appt.PatientCode, style: contentTextStyle),
                   SizedBox(height: 20),
                   Text('Appointment Date'.toUpperCase(), style: titleTextStyle),
                   Text(
                       DateFormat('EEE, MMM d yyyy')
-                          .format(appt.data["apptDate"].toDate())
+//                          .format(appt.data["apptDate"].toDate()) //underapi
+                          .format(appt.ApptRqstDate)
                           .toUpperCase(),
                       style: contentTextStyle),
                 ],
@@ -62,7 +66,8 @@ class AppointmentDetails extends StatelessWidget {
                   Container(
                     width: 160,
                     child: Text(
-                      appt.data["patientName"],
+//                      appt.data["patientName"],//underapi
+                      appt.PatientName,
                       style: contentTextStyle,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -71,7 +76,8 @@ class AppointmentDetails extends StatelessWidget {
                   Text('Appointment Time'.toUpperCase(), style: titleTextStyle),
                   Text(
                       DateFormat.jm()
-                          .format(appt.data["doctorSlotFromTime"].toDate())
+//                          .format(appt.data["doctorSlotFromTime"].toDate()) //underapi
+                          .format(appt.FromTime1)
                           .toUpperCase(),
                       style: contentTextStyle),
                 ],

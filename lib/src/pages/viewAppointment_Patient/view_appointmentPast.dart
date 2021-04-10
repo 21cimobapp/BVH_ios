@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:math';
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:civideoconnectapp/src/pages/ViewAppointment_Patient/view_appointment.dart';
 import 'package:flutter/material.dart';
 import 'demo_data.dart';
@@ -7,6 +9,7 @@ import 'package:civideoconnectapp/utils/Database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:civideoconnectapp/src/pages/AppointmentDetails.dart';
 import 'package:civideoconnectapp/globals.dart' as globals;
+import 'package:http/http.dart' as http;
 
 class ViewAppointmentPast extends StatefulWidget {
   @override
@@ -19,11 +22,43 @@ class _ViewAppointmentPastState extends State<ViewAppointmentPast> {
   final ScrollController _scrollController = ScrollController();
   // Stream<QuerySnapshot> appointments1;
   // Stream<QuerySnapshot> appointments2;
-  Stream<QuerySnapshot> appointments;
+//  Stream<QuerySnapshot> appointments;
   final List<int> _openTickets = [];
-
+  List<ViewAppointmentDetails> _appointment = List<ViewAppointmentDetails>();
   List<bool> isSelected;
   int selectedIndex = 0;
+  var doc = List<ViewAppointmentDetails>();
+
+  Future<List<ViewAppointmentDetails>> apiData() async {
+
+    var url = "${globals.apiHostingURLBVH}/MobileAppPatient/ViewAppointmentList";
+//    url="http://devp.21ci.com:81/BVHApptPortalAPI/api/MobileAppPatient/ViewAppointmentList";
+    var response = await http.post(url,
+        headers: {"Authorization": 'Bearer ${globals.tokenKey}'},
+        body: {
+          "PatientCode": "${globals.personCode}"
+        }
+    );
+//    var doc = List<ViewAppointmentDetails>();
+//    final Stream<List<int>> _posts = Stream<List<int>>.fromIterable(
+//      <List<int>>[
+//        List<int>.generate(10, (int i) => i),
+//      ],
+//    );
+
+    if (response.statusCode == 200) {
+      List patientJson = json.decode(response.body)['PatientAppointList'];
+      if (patientJson.isNotEmpty) {
+        for (var notejson in patientJson) {
+          String a1 = notejson["ApptPeriod"];
+          if (a1 == "0") {
+            doc.add(ViewAppointmentDetails.fromJson(notejson));
+          }
+        }
+        return doc;
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -31,7 +66,12 @@ class _ViewAppointmentPastState extends State<ViewAppointmentPast> {
 
     isSelected = [true, false];
 
-    getStream(1);
+//    getStream(1);
+    apiData().then((value) {
+      setState(() {
+        _appointment.addAll(value);
+      });
+    }); //underapi
     // DatabaseMethods().getPatientAppointments(globals.personCode).then((val) {
     //   setState(() {
     //     appointments1 = val;
@@ -152,12 +192,14 @@ class _ViewAppointmentPastState extends State<ViewAppointmentPast> {
           ),
           SizedBox(height: 5),
           Expanded(
-            child: StreamBuilder(
-                stream:
-                    appointments, //selectedIndex == 0 ? appointments1 : appointments2,
-                builder: (context, snapshot) {
-                  return snapshot.hasData
-                      ? snapshot.data.documents.length == 0
+//            child: StreamBuilder(
+//                stream:
+//                    appointments, //selectedIndex == 0 ? appointments1 : appointments2,
+//                builder: (context, snapshot) {
+//                  return snapshot.hasData
+//                      ? snapshot.data.documents.length == 0
+          child: _appointment!=null?_appointment.length==0
+
                           ? Container(
                               height: 80,
                               width: MediaQuery.of(context).size.width,
@@ -172,46 +214,46 @@ class _ViewAppointmentPastState extends State<ViewAppointmentPast> {
                           : ListView.builder(
                               controller: _scrollController,
                               physics: BouncingScrollPhysics(),
-                              itemCount: snapshot.data.documents.length,
+                              itemCount: _appointment.length,
                               itemBuilder: (BuildContext context, int index) {
                                 return Container(
                                   child: getAppointmentCard(
-                                      snapshot.data.documents[index], index),
+                                      _appointment[index], index),
                                 );
                               },
                             )
                       : Container(
-                          child: Text("Loading data..."),
-                        );
-                }),
+                          child: Text("Loading data..."),),
+                       // );
+               // }),
           ),
         ]),
       ),
     );
   }
 
-  getStream(index) {
-    if (index == 0) {
-      DatabaseMethods().getPatientAppointments(globals.personCode).then((val) {
-        setState(() {
-          appointments = val;
-        });
-      });
-    } else {
-      DatabaseMethods()
-          .getPatientAppointmentsPast(globals.personCode)
-          .then((val) {
-        setState(() {
-          appointments = val;
-        });
-      });
-    }
-
-    // if (index == 0)
-    //   return appointments1;
-    // else
-    //   return appointments2;
-  }
+//  getStream(index) {
+//    if (index == 0) {
+//      DatabaseMethods().getPatientAppointments(globals.personCode).then((val) {
+//        setState(() {
+//          appointments = val;
+//        });
+//      });
+//    } else {
+//      DatabaseMethods()
+//          .getPatientAppointmentsPast(globals.personCode)
+//          .then((val) {
+//        setState(() {
+//          appointments = val;
+//        });
+//      });
+//    }
+//
+//    // if (index == 0)
+//    //   return appointments1;
+//    // else
+//    //   return appointments2;
+//  }
 
   Widget getAppointmentCard(appt, index) {
     Widget apptCard;
@@ -225,16 +267,17 @@ class _ViewAppointmentPastState extends State<ViewAppointmentPast> {
     return apptCard;
   }
 
-  bool _handleViewAppointmentPast(DocumentSnapshot appt) {
+  bool _handleViewAppointmentPast(ViewAppointmentDetails appt) {
     Navigator.of(context).push(
       PageRouteBuilder(
         transitionDuration: Duration(milliseconds: 1000),
         pageBuilder: (BuildContext context, Animation<double> animation,
             Animation<double> secondaryAnimation) {
           return AppointmentScreen(
-            appointmentNumber: appt.data["appointmentNumber"],
+            appointmentNumber: appt.ApptNumber,
+            appt1:appt,
             isCurrent:0, // Added by Abhi for feedback in Past
-            apptTime: appt.data["doctorSlotToTime"].toDate(), // Added by Abhi for feedback in Past
+            apptTime: appt.ToTime1, // Added by Abhi for feedback in Past
           );
         },
         transitionsBuilder: (BuildContext context, Animation<double> animation,

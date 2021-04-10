@@ -1,3 +1,4 @@
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:civideoconnectapp/globals.dart' as globals;
@@ -5,7 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class AppointmentAction extends StatefulWidget {
-  final DocumentSnapshot appt;
+  //final DocumentSnapshot appt;//underapi
+  final ViewAppointmentDetails appt;
   final Function() onViewClick;
   @override
   _AppointmentActionState createState() => _AppointmentActionState();

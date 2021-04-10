@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:civideoconnectapp/data_models/ViewAppointmentDetails.dart';
 import 'package:civideoconnectapp/src/pages/AppointmentDetails.dart';
 import 'package:civideoconnectapp/src/pages/aboutUs.dart';
 import 'package:civideoconnectapp/src/pages/appointment_new/doctor_appointment_home.dart';
@@ -9,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toast/toast.dart';
 import 'syles.dart';
 import 'package:civideoconnectapp/globals.dart' as globals;
@@ -72,53 +76,56 @@ class HomePagePatientNew extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
 }
-class PatientAppointmentList {
-  String appointmentNumber1;
-  String status;
-  PatientAppointmentList({
-    this.appointmentNumber1,
-    this.status,
-  });
-
-  PatientAppointmentList.fromJson(Map<String, dynamic> json) {
-    appointmentNumber1 = json["appointmentNumber"];
-    status = json["appointmentStatus"];
-  }
-}
+//class PatientAppointmentList {
+//  String appointmentNumber1;
+//  String status;
+//  PatientAppointmentList({
+//    this.appointmentNumber1,
+//    this.status,
+//  });
+//
+//  PatientAppointmentList.fromJson(Map<String, dynamic> json) {
+//    appointmentNumber1 = json["appointmentNumber"];
+//    status = json["appointmentStatus"];
+//  }
+//}
 
 class _HomePageState extends State<HomePagePatientNew> {
   var isLoading = false;
   int _current = 0;
-  Stream<QuerySnapshot> appointments;
+//  Stream<QuerySnapshot> appointments;
 //  Stream<QuerySnapshot> lastappointment;
   final ScrollController _scrollController = ScrollController();
   final Color _backgroundColor = Color(0xFFf0f0f0);
-  DocumentSnapshot appt;
+//  DocumentSnapshot appt;
+  var doc = List<ViewAppointmentDetails>();
+  var docLast = List<ViewAppointmentDetails>();
+  List<ViewAppointmentDetails> _appointment = List<ViewAppointmentDetails>();
+  List<ViewAppointmentDetails> _appointmentLast = List<ViewAppointmentDetails>();
   //PatientAppointmentList plist;
 
-   List lastappointmentNumber=[];
-   getPatientAppointmentLast(String patientCode) async {
-     await Firestore.instance
-        .collection("Appointments")
-        .where("patientCode", isEqualTo: patientCode)
-        .where("doctorSlotToTime", isLessThanOrEqualTo: DateTime.now())
-        .orderBy("doctorSlotToTime", descending: true)
-        .limit(1)
-        .getDocuments()
-        .then((QuerySnapshot snapshot) //{
-    => snapshot.documents.forEach(
-            (f) =>
-            lastappointmentNumber.add(PatientAppointmentList(
-              appointmentNumber1: f.data['appointmentNumber'],
-              //status: f.data['appointmentStatus'],
-            ))
-    ),
-
-    );
-     print("Last Appointment Number: ${lastappointmentNumber[0].appointmentNumber1}");
-    // print("Last Appointment Number: ${lastappointmentNumber[0].status},");
-    return lastappointmentNumber;
-  }
+//   List lastappointmentNumber=[];
+//   getPatientAppointmentLast(String patientCode) async {
+//     await Firestore.instance
+//        .collection("Appointments")
+//        .where("patientCode", isEqualTo: patientCode)
+//        .where("doctorSlotToTime", isLessThanOrEqualTo: DateTime.now())
+//        .orderBy("doctorSlotToTime", descending: true)
+//        .limit(1)
+//        .getDocuments()
+//        .then((QuerySnapshot snapshot) //{
+//    => snapshot.documents.forEach(
+//            (f) =>
+//            lastappointmentNumber.add(PatientAppointmentList(
+//              appointmentNumber1: f.data['appointmentNumber'],
+//            ))
+//    ),
+//
+//    );
+//     print("Last Appointment Number: ${lastappointmentNumber[0].appointmentNumber1}");
+//
+//    return lastappointmentNumber;
+//  }
 //  List listOfAppointmentNumber=[];
   //added by vrushali to check multiple feedback
 //  getData(String appointmentNumber) async {
@@ -134,20 +141,105 @@ class _HomePageState extends State<HomePagePatientNew> {
 //    );print("List of FeedbackSubmitted Appointment Number: $listOfAppointmentNumber");
 //    return listOfAppointmentNumber;
 //  }
+  Future<List<ViewAppointmentDetails>> getPatientAppointmentLast() async {
+
+    var url = "${globals.apiHostingURLBVH}/MobileAppPatient/ViewAppointmentList";
+//    url="http://devp.21ci.com:81/BVHApptPortalAPI/api/MobileAppPatient/ViewAppointmentList";
+    var response = await http.post(url,
+        headers: {"Authorization": 'Bearer ${globals.tokenKey}'},
+        body: {
+          "PatientCode": "${globals.personCode}"
+        }
+    );
+
+    if (response.statusCode == 200) {
+      List patientJson = json.decode(response.body)['PatientAppointList'];
+      if (patientJson.isNotEmpty) {
+        for (var notejson in patientJson) {
+          String a1 = notejson["ApptPeriod"];
+          if (a1 == "0") {
+            if (docLast.isEmpty) {
+              docLast.add(ViewAppointmentDetails.fromJson(notejson));
+            }
+
+            if (docLast.isNotEmpty) {
+              ViewAppointmentDetails newApp1 = ViewAppointmentDetails.fromJson(
+                  notejson);
+              print("${newApp1.ApptNumber} - ${docLast[0].ApptNumber}");
+              print(newApp1.FromTime1.difference(docLast[0].FromTime1));
+              print(docLast[0].FromTime1.difference(newApp1.FromTime1));
+              if (newApp1.FromTime1.difference(docLast[0].FromTime1) >
+                  Duration.zero) {
+                docLast.removeRange(0, docLast.length);
+                docLast.add(newApp1);
+              }
+            }
+          }
+        }
+        return docLast;
+      }
+    }
+  }
+  Future<List<ViewAppointmentDetails>> getPatientAppointmentNext() async {
+
+    var url = "${globals.apiHostingURLBVH}/MobileAppPatient/ViewAppointmentList";
+//    url="http://devp.21ci.com:81/BVHApptPortalAPI/api/MobileAppPatient/ViewAppointmentList";
+    var response = await http.post(url,
+        headers: {"Authorization": 'Bearer ${globals.tokenKey}'},
+        body: {
+          "PatientCode": "${globals.personCode}"
+        }
+    );
+
+    if (response.statusCode == 200) {
+      List patientJson = json.decode(response.body)['PatientAppointList'];
+      if (patientJson.isNotEmpty) {
+        for (var notejson in patientJson) {
+          String a1 = notejson["ApptPeriod"];
+          if (a1 == "1") {
+            if(doc.isEmpty) {
+              doc.add(ViewAppointmentDetails.fromJson(notejson));
+            }
+            if( doc.isNotEmpty){
+              ViewAppointmentDetails newApp = ViewAppointmentDetails.fromJson(notejson);
+              print("${newApp.ApptNumber} - ${doc[0].ApptNumber}");
+              print(newApp.FromTime1.difference(doc[0].FromTime1));
+              print(doc[0].FromTime1.difference(newApp.FromTime1));
+              if (doc[0].FromTime1.difference(newApp.FromTime1) > Duration.zero){
+                doc.removeRange(0, doc.length);
+                doc.add(newApp);
+              }
+            }
+          }
+        }
+
+        return doc;
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    getPatientAppointmentLast(globals.personCode);
-
-
-    DatabaseMethods()
-        .getPatientAppointmentsNext(globals.personCode)
-        .then((val) {
+    getPatientAppointmentLast().then((value) {
       setState(() {
-        appointments = val;
+        _appointmentLast.addAll(value);
       });
-    });
+    }); //underapi
+
+    getPatientAppointmentNext().then((value) {
+      setState(() {
+        _appointment.addAll(value);
+      });
+    }); //underapi
+
+//    DatabaseMethods()
+//        .getPatientAppointmentsNext(globals.personCode)
+//        .then((val) {
+//      setState(() {
+//        appointments = val;
+//      });
+//    });
 //    getData(widget.appointmentNumber);
 
 //    DatabaseMethods()
@@ -200,9 +292,10 @@ class _HomePageState extends State<HomePagePatientNew> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {
+                          onTap: () async {
                             AuthService().signOut();
-
+                            final prefs = await SharedPreferences.getInstance();
+                            prefs.setString('personCode', "");
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
                                 builder: (context) => StartScreen(),
@@ -272,11 +365,12 @@ class _HomePageState extends State<HomePagePatientNew> {
                     Container(
                       height: 100,
                       color: Colors.white,
-                      child: StreamBuilder(
-                          stream: appointments,
-                          builder: (context, snapshot) {
-                            return snapshot.hasData
-                                ? snapshot.data.documents.length == 0
+//                      child: StreamBuilder(
+//                          stream: appointments,
+//                          builder: (context, snapshot) {
+//                            return snapshot.hasData
+//                                ? snapshot.data.documents.length == 0
+                                child: _appointment!=null?_appointment.length==0
                                     ? Container(
                                         height: 100,
                                         width:
@@ -295,7 +389,7 @@ class _HomePageState extends State<HomePagePatientNew> {
                                         controller: _scrollController,
                                         physics: BouncingScrollPhysics(),
                                         itemCount:
-                                            snapshot.data.documents.length,
+                                        _appointment.length,
                                         itemBuilder:
                                             (BuildContext context, int index) {
                                           return GestureDetector(
@@ -305,11 +399,12 @@ class _HomePageState extends State<HomePagePatientNew> {
                                                 MaterialPageRoute(
                                                   builder: (context) =>
                                                       AppointmentScreen(
-                                                    appointmentNumber: snapshot
-                                                            .data
-                                                            .documents[index]
-                                                            .data[
-                                                        "appointmentNumber"],
+                                                    appointmentNumber:_appointment[index].ApptNumber,
+                                                    appt1: _appointment[index],
+//    snapshot
+//                                                            .data
+//                                                            .documents[index]
+//                                                            .data["appointmentNumber"],
                                                   ),
                                                 ),
                                               );
@@ -321,9 +416,8 @@ class _HomePageState extends State<HomePagePatientNew> {
                                                 children: [
                                                   Container(
                                                       child: _buildTopContent(
-                                                          snapshot.data
-                                                                  .documents[
-                                                              index])),
+//                                                          snapshot.data.documents[index]
+    _appointment[index])),
                                                 ],
                                               ),
                                             ),
@@ -332,9 +426,9 @@ class _HomePageState extends State<HomePagePatientNew> {
                                       )
                                 : Container(
                                     width: double.infinity,
-                                    child: Text("Loading data..."),
-                                  );
-                          }),
+                                    child: Text("Loading data..."),)
+                                //  );
+                         // }),
                     ),
                   ],
                 ),
@@ -441,7 +535,7 @@ class _HomePageState extends State<HomePagePatientNew> {
 //                ),
 //              ),
 
-              lastappointmentNumber ==null ? Container() :
+              _appointmentLast.isEmpty ? Container() :
 //              lastappointmentNumber!=null ? // && lastappointmentNumber[1].status == "PENDING" ?
               //listOfAppointmentNumber!=lastappointmentNumber[1].appointmentNumber1 ||
 //                  listOfAppointmentNumber.isEmpty?
@@ -489,7 +583,7 @@ class _HomePageState extends State<HomePagePatientNew> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              PatientFeedback(appointmentNumber:lastappointmentNumber[0].appointmentNumber1 ,Doctorname:null),
+                                              PatientFeedback(appointmentNumber:_appointmentLast[0].ApptNumber ,Doctorname:_appointmentLast[0].DoctorName),
                                         ),
                                       )
 
@@ -522,7 +616,7 @@ class _HomePageState extends State<HomePagePatientNew> {
     );
   }
 
-  Padding _buildTopContent(DocumentSnapshot appt) {
+  Padding _buildTopContent(ViewAppointmentDetails appt) {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 5.0),
         child: Row(
@@ -544,26 +638,26 @@ class _HomePageState extends State<HomePagePatientNew> {
                 Container(
                   width: MediaQuery.of(context).size.width - 150,
                   child: Text(
-                    appt.data["doctorName"].toUpperCase(),
+                    appt.DoctorName.toUpperCase(),
                     style: bodyTextStyle.copyWith(fontSize: 20),
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.visible,
                   ),
                 ),
                 Text(
-                  appt.data["departmentName"].toUpperCase(),
+                  appt.DeptName.toUpperCase(),
                   style: bodyTextStyle.copyWith(fontSize: 10),
                 ),
                 Row(
                   children: [
                     Text(
                         DateFormat('EEE, MMM d yyyy')
-                            .format(appt.data["apptDate"].toDate())
+                            .format(appt.ApptRqstDate)
                             .toUpperCase(),
                         style: bodyTextStyle.copyWith(fontSize: 10)),
                     SizedBox(width: 10),
                     Text(
                         DateFormat.jm()
-                            .format(appt.data["doctorSlotFromTime"].toDate())
+                            .format(appt.FromTime1)
                             .toUpperCase(),
                         style: bodyTextStyle.copyWith(fontSize: 10)),
                   ],
